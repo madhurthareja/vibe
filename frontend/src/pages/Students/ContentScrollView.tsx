@@ -247,6 +247,7 @@ const ContentScrollView = () => {
         events: {
           onReady: (event) => {
             setIsPlayerReady(true)
+            setCaptionsEnabled(true)
             onPlayerReady(event)
           },
           onStateChange: onPlayerStateChange,
@@ -350,6 +351,34 @@ const ContentScrollView = () => {
       playerRef.current.setPlaybackQuality(quality)
     }
   }
+
+  const [captionsEnabled, setCaptionsEnabled] = useState(false)
+
+  // Function to toggle captions
+  const toggleCaptions = () => {
+    if (!captionsEnabled) {
+      setCaptionsEnabled(true)
+      if (playerRef.current) {
+        playerRef.current.loadModule('captions') // Load the caption module
+        playerRef.current.setOption('captions', 'track', { languageCode: 'en' }) // English captions
+      }
+    } else {
+      setCaptionsEnabled(false)
+      if (playerRef.current) {
+        playerRef.current.unloadModule('captions') // Unload the caption module
+      }
+    }
+  }
+
+  // Effect to handle changes in captions state
+  useEffect(() => {
+    if (captionsEnabled && playerRef.current) {
+      playerRef.current.loadModule('captions') // Load captions if enabled
+      playerRef.current.setOption('captions', 'track', { languageCode: 'en' })
+    } else if (playerRef.current) {
+      playerRef.current.unloadModule('captions') // Unload captions if disabled
+    }
+  }, [captionsEnabled])
 
   // Whenever the state of video changed like pause , play , ended this funtion is called
   const onPlayerStateChange = (event) => {
@@ -625,9 +654,10 @@ const ContentScrollView = () => {
     const isLastQuestion = currentQuestionIndex === AssessmentData.length - 1
 
     return (
-      <div className='flex h-screen w-full flex-col justify-top bg-gray-50 px-8 pb-8 pt-4 text-gray-800 shadow-lg'>
-        <div className='ml-auto mb-16'>
-          Time Remaining: <span className='text-red-500 font-bold'>{countdown} seconds</span>
+      <div className='justify-top flex h-screen w-full flex-col bg-gray-50 px-8 pb-8 pt-4 text-gray-800 shadow-lg'>
+        <div className='mb-16 ml-auto'>
+          Time Remaining:{' '}
+          <span className='font-bold text-red-500'>{countdown} seconds</span>
         </div>
         <h3 className='mb-6 w-full text-3xl font-bold text-gray-900'>
           {question.text}
@@ -706,7 +736,7 @@ const ContentScrollView = () => {
             key={`player-${index}`}
             id={`player-${index}`}
             title={content[currentFrame].title}
-            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0&controls=0&modestbranding=1&showinfo=0&fs=1&iv_load_policy=3&cc_load_policy=1&autohide=1`}
+            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0&controls=0&modestbranding=1&showinfo=0&fs=1&iv_load_policy=3&cc_load_policy=0&autohide=1`}
             frameBorder='0'
             allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
             allowFullScreen
@@ -874,6 +904,19 @@ const ContentScrollView = () => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  <div className='flex items-center'>
+                    {/* Existing buttons for play/pause, etc. */}
+                    <button
+                      onClick={toggleCaptions}
+                      className={`ml-4 rounded-full px-3 py-1 text-sm ${
+                        captionsEnabled ? 'bg-black text-white' : 'bg-gray-200'
+                      }`}
+                      title='Toggle Captions'
+                    >
+                      {captionsEnabled ? 'Hide Captions' : 'Show Captions'}
+                    </button>
+                  </div>
 
                   {/* Right section: Fullscreen toggle */}
                   <div>
