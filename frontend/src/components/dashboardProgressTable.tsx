@@ -123,8 +123,9 @@ export function DataTableDemo() {
   const [rowSelection, setRowSelection] = React.useState({})
   const dispatch = useDispatch()
   const studentsProgress = useSelector(
-    (state) => state.studentsProgress?.AllstudentsProgress?? []
+    (state) => state.studentsProgress?.AllstudentsProgress ?? []
   )
+  const [sortedAndRankedData, setSortedAndRankedData] = React.useState([])
 
   console.log('studentsProgress:', studentsProgress)
 
@@ -132,7 +133,7 @@ export function DataTableDemo() {
     if (studentsProgress === undefined || studentsProgress?.length === 0) {
       dispatch(fetchAllStudentsProgress())
     }
-  }, [dispatch, studentsProgress])
+  }, [dispatch, studentsProgress.length])
 
   console.log('studentsProgress2 :', studentsProgress)
 
@@ -147,46 +148,54 @@ export function DataTableDemo() {
   //     }
   //   }, [dispatch, studentsProgress])
 
-  const data = studentsProgress.map(student => ({
-    ...student // This spreads each student into a new object, making it mutable
-  }));
-  
-  data.sort((a, b) => b.averageProgress - a.averageProgress);
-  
-  let rank = 1;
-  let previousProgress = data[0]?.averageProgress; // Start with the highest progress
-  let sameRankCount = 0;
-  
-  data.forEach((student, index) => {
-    if (student.averageProgress === previousProgress) {
-      // Assign the current rank
-      student.rank = rank;
-      sameRankCount++; // Increment the count of students with the same rank
-    } else {
-      // Update the rank (skip ranks by number of students with same previous progress)
-      rank += sameRankCount;
-      student.rank = rank;
-      previousProgress = student.averageProgress;
-      sameRankCount = 1; // Reset count for this new progress level
-    }
-  });
-  
-  // You can now use 'data' in your table, where each object is extensible and mutable.
-  
-// Now you can use the modified 'data' array to render your table, etc.
+  React.useEffect(() => {
+    if (studentsProgress.length > 0) {
+      // Sort the data by averageProgress in descending order
+      const sortedData = [...studentsProgress].sort(
+        (a, b) => b.averageProgress - a.averageProgress
+      )
 
+      // Create a new array with ranks added
+      const rankedData = []
+      let previousProgress = null
+      let rank = 0
+      let usersAtThisRank = 0
+
+      sortedData.forEach((student, index) => {
+        if (student.averageProgress !== previousProgress) {
+          // Increment rank to the next number of users, plus one to start from 1
+          rank += usersAtThisRank
+          usersAtThisRank = 1 // reset users at this rank
+        } else {
+          // If the same as previous, do not change the rank, increment count
+          usersAtThisRank++
+        }
+
+        // Assign rank and update previousProgress
+        rankedData.push({ ...student, rank: rank + 1 })
+        previousProgress = student.averageProgress
+      })
+
+      setSortedAndRankedData(rankedData)
+    }
+  }, [studentsProgress])
 
   const table = useReactTable({
-    data,
+    data: sortedAndRankedData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel({
-        pageCount: 5, // This will ensure only 5 pages are displayed in the pagination
-        manualPagination: true,
-        rowCount: 5,
-      }),
+    getPaginationRowModel: getPaginationRowModel(),
+  debugTable: true,
+  manualPagination: false, // Ensure this is false for client-side pagination
+  pageCount: undefined, // Let React Table handle page count based on the data
+  initialState: {
+    pagination: {
+      pageSize: 5, // Ensure this is set in initialState
+      pageIndex: 0,
+    }
+  },
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -196,6 +205,7 @@ export function DataTableDemo() {
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: { pageSize: 5, pageIndex: 0 } // Added this line
     },
   })
 
