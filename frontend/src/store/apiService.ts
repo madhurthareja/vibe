@@ -388,6 +388,12 @@ export const anotherApiService = createApi({
         },
       }),
     }),
+    fetchAllStudentsProgress: builder.query<void, void>({
+      query: () => ({
+        url: '/all-students-progress',
+        method: 'GET',
+      }),
+    }),
   }),
 })
 
@@ -402,4 +408,5 @@ export const {
   useFetchSectionItemsProgressQuery,
   useInitailizeCourseProgressMutation,
   useFetchWeeklyProgressQuery,
+  useFetchAllStudentsProgressQuery,
 } = anotherApiService

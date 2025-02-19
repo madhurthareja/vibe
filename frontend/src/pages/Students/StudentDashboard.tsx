@@ -44,6 +44,7 @@ import { Chart } from '@/components/ChartDashboard'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchCoursesWithAuth } from '@/store/slices/courseSlice'
 import { fetchWeeklyProgress } from '@/store/slices/FetchWeeklyProgress'
+import { DataTableDemo } from '@/components/dashboardProgressTable'
 
 // Mock data for available courses
 
@@ -207,37 +208,8 @@ const StudentDashboard = () => {
 
         {/* Ongoing Courses table */}
         <div className='flex h-full flex-col rounded-lg border'>
-          <div className='flex items-center justify-between border-b px-6 py-4'>
-            <h1 className='text-xl font-semibold'>On-Going Courses</h1>
-            <Button
-              variant='outline'
-              onClick={() => setShowAllOngoing(!showAllOngoing)}
-            >
-              {showAllOngoing ? 'Show Less' : 'View All'}
-            </Button>
-          </div>
           <div className='flex-1 px-6 py-4'>
-            <Table>
-              <TableCaption>
-                Your ongoing courses.
-              </TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className='w-[100px]'>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayedOngoing.map((course) => (
-                  <TableRow key={course.id}>
-                    <TableCell className='font-medium'>
-                      {displayedOngoing.indexOf(course) + 1}
-                    </TableCell>
-                    <TableCell>{course.name}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTableDemo />
           </div>
         </div>
       </div>
