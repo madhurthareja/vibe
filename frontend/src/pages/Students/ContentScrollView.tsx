@@ -154,6 +154,36 @@ const ContentScrollView = () => {
   const { data: assignmentsData } = useFetchItemsWithAuthQuery(sectionId)
   const content = assignmentsData || []
 
+  const [countdown, setCountdown] = useState(30) // 30 seconds countdown
+
+  useEffect(() => {
+    let timer
+    const currentContent = content[currentFrame]
+
+    if (currentContent && currentContent.item_type === 'assessment') {
+      setCountdown(30) // Reset countdown to 30 seconds whenever the frame is an assessment
+      timer = setInterval(() => {
+        setCountdown((prevCountdown) => {
+          if (prevCountdown <= 1) {
+            // Change frame when countdown finishes
+            clearInterval(timer)
+            const nextFrameIndex = (currentFrame - 1) % content.length
+            setCurrentFrame(nextFrameIndex)
+            return 30 // reset countdown if looping
+          }
+          return prevCountdown - 1
+        })
+      }, 1000) // Update countdown every second
+    }
+
+    // Cleanup function to clear the interval when component unmounts or dependencies change
+    return () => {
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [currentFrame, content, setCurrentFrame])
+
   const qualityLabels = {
     small: '360p',
     medium: '480p',
@@ -595,7 +625,10 @@ const ContentScrollView = () => {
     const isLastQuestion = currentQuestionIndex === AssessmentData.length - 1
 
     return (
-      <div className='flex h-screen w-full flex-col justify-center bg-gray-50 p-8 text-gray-800 shadow-lg'>
+      <div className='flex h-screen w-full flex-col justify-top bg-gray-50 px-8 pb-8 pt-4 text-gray-800 shadow-lg'>
+        <div className='ml-auto mb-16'>
+          Time Remaining: <span className='text-red-500 font-bold'>{countdown} seconds</span>
+        </div>
         <h3 className='mb-6 w-full text-3xl font-bold text-gray-900'>
           {question.text}
         </h3>

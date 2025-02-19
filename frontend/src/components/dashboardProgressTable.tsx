@@ -117,6 +117,8 @@ export function DataTableDemo() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  const [pageSize, setPageSize] = React.useState(7) // Initial page size set to 7 rows per page
+  const [pageIndex, setPageIndex] = React.useState(0) // Initial page index
 
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -180,6 +182,18 @@ export function DataTableDemo() {
     }
   }, [studentsProgress])
 
+  const handleNextPage = () => {
+    if (table.getCanNextPage()) {
+      setPageIndex((current) => current + 1)
+    }
+  }
+
+  const handlePreviousPage = () => {
+    if (table.getCanPreviousPage()) {
+      setPageIndex((current) => current - 1)
+    }
+  }
+
   const table = useReactTable({
     data: sortedAndRankedData,
     columns,
@@ -187,6 +201,8 @@ export function DataTableDemo() {
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false, // set to true if you are fetching data server-side
+    pageCount: undefined, // provide total page count if using server-side pagination
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -196,6 +212,7 @@ export function DataTableDemo() {
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: { pageIndex, pageSize }, // Add pagination state here
     },
   })
 
@@ -288,14 +305,14 @@ export function DataTableDemo() {
       </div>
       <div className='flex items-center justify-end space-x-2 py-4'>
         <div className='flex-1 text-sm text-muted-foreground'>
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          7 of{' '}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className='space-x-2'>
           <Button
             variant='outline'
             size='sm'
-            onClick={() => table.previousPage()}
+            onClick={handlePreviousPage}
             disabled={!table.getCanPreviousPage()}
           >
             Previous
@@ -303,7 +320,7 @@ export function DataTableDemo() {
           <Button
             variant='outline'
             size='sm'
-            onClick={() => table.nextPage()}
+            onClick={handleNextPage}
             disabled={!table.getCanNextPage()}
           >
             Next
