@@ -187,15 +187,6 @@ export function DataTableDemo() {
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  debugTable: true,
-  manualPagination: false, // Ensure this is false for client-side pagination
-  pageCount: undefined, // Let React Table handle page count based on the data
-  initialState: {
-    pagination: {
-      pageSize: 5, // Ensure this is set in initialState
-      pageIndex: 0,
-    }
-  },
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -205,7 +196,6 @@ export function DataTableDemo() {
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination: { pageSize: 5, pageIndex: 0 } // Added this line
     },
   })
 
