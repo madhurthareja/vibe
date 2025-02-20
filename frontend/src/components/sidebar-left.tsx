@@ -194,8 +194,7 @@ export function SidebarLeft({
                                   <div
                                     className='flex items-center gap-2'
                                     onClick={() => {
-                                      if (itemProgress !== 'INCOMPLETE') {
-                                        if (item.item_type === 'video') {
+                                      if (item.item_type === 'video') {
                                           navigate('/content-scroll-view', {
                                             state: {
                                               assignment,
@@ -209,7 +208,6 @@ export function SidebarLeft({
                                         ) {
                                           toast('Watch video first')
                                         }
-                                      }
                                     }}
                                   >
                                     <span
