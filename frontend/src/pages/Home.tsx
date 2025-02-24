@@ -42,6 +42,7 @@ import { ProfileDropdown } from '@/components/Profile-Dropdown'
 import { useDispatch } from 'react-redux'
 import { logoutState } from '@/store/slices/authSlice'
 import { useLogoutMutation } from '@/store/apiService'
+import { DashboardDropdown } from '@/components/ui/DashboardDropdown'
 
 const Home = () => {
   // State to control right sidebar visibility
@@ -93,8 +94,10 @@ const Home = () => {
             </Breadcrumb>
             {/* Header controls */}
             <div className='ml-auto mr-4 flex gap-4'>
-              <Button onClick={() => navigate('/')}>Dashboard</Button>
-              <Button onClick={handleLogout}>Logout</Button>
+              <DashboardDropdown />
+              {/* <Button onClick={() => navigate('/')}>Dashboard</Button>
+              <Button onClick={() => navigate('/analytics')}>Analytics</Button>
+              <Button onClick={handleLogout}>Logout</Button> */}
               {/* <Button variant='ghost' size='icon' onClick={toggleRightSidebar}>
                 <PanelRight />
               </Button> */}

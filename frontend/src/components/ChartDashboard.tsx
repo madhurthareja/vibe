@@ -24,6 +24,9 @@ import {
 } from './ui/select'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchWeeklyProgress } from '@/store/slices/FetchWeeklyProgress'
+import { Button } from './ui/button'
+import { TrendingUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 // Sample data for each course
 const courseData1 = {
@@ -139,6 +142,8 @@ export function Chart() {
     setSelectedCourse(value)
   }
 
+  const navigate = useNavigate()
+
   return (
     <Card>
       <CardHeader>
@@ -147,28 +152,31 @@ export function Chart() {
             <CardTitle>Progress Chart</CardTitle>
             <CardDescription>Updates once a day</CardDescription>
           </div>
-          <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className='w-[180px]'>
-              <SelectValue placeholder='Select Course' />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(courseData || {}).map((courseKey) => {
-                // Find the corresponding course info from the courses state using courseKey
-                const courseInfo = courses.find(
-                  (course) => course.course_id === courseKey
-                )
+          <div className='flex gap-2'>
+            <Button className='text-gray-700' onClick={() => navigate('/analytics')} variant={'outline'}><TrendingUp/> View Full Analytics</Button>
+            <Select onValueChange={handleSelectChange}>
+              <SelectTrigger className='w-[180px]'>
+                <SelectValue placeholder='Select Course' />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(courseData || {}).map((courseKey) => {
+                  // Find the corresponding course info from the courses state using courseKey
+                  const courseInfo = courses.find(
+                    (course) => course.course_id === courseKey
+                  )
 
-                return (
-                  <SelectItem
-                    key={courseInfo ? courseInfo.course_id : courseKey} // Fallback to courseKey if courseInfo is undefined
-                    value={courseInfo ? courseInfo.course_id : courseKey}
-                  >
-                    {courseInfo ? courseInfo.name : 'Unknown Course'}
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
+                  return (
+                    <SelectItem
+                      key={courseInfo ? courseInfo.course_id : courseKey} // Fallback to courseKey if courseInfo is undefined
+                      value={courseInfo ? courseInfo.course_id : courseKey}
+                    >
+                      {courseInfo ? courseInfo.name : 'Unknown Course'}
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

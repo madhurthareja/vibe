@@ -115,7 +115,7 @@ const StudentDashboard = () => {
       )
       const latestProgress = sortedEntries[0].User // Latest progress
       if (latestProgress === 100) completed += 1 // Increment if latest progress is 100%
-      console.log("Hellossdfncdhbvjsbvjsjdvbjhsdvj",completed)
+      console.log('Hellossdfncdhbvjsbvjsjdvbjhsdvj', completed)
       return latestProgress
     })
     setcompletedCourses(completed)

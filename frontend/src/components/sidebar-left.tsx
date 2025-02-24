@@ -195,19 +195,19 @@ export function SidebarLeft({
                                     className='flex items-center gap-2'
                                     onClick={() => {
                                       if (item.item_type === 'video') {
-                                          navigate('/content-scroll-view', {
-                                            state: {
-                                              assignment,
-                                              sectionId,
-                                              courseId,
-                                              moduleId,
-                                            },
-                                          })
-                                        } else if (
-                                          item.item_type === 'assessment'
-                                        ) {
-                                          toast('Watch video first')
-                                        }
+                                        navigate('/content-scroll-view', {
+                                          state: {
+                                            assignment,
+                                            sectionId,
+                                            courseId,
+                                            moduleId,
+                                          },
+                                        })
+                                      } else if (
+                                        item.item_type === 'assessment'
+                                      ) {
+                                        toast('Watch video first')
+                                      }
                                     }}
                                   >
                                     <span
