@@ -1,9 +1,13 @@
 const Question = require('../../models/Course/SectionItems/QuestionSchema'); // Adjust the path to match where your models are stored
+const User = require('../../models/User/UserSchema'); 
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { questionText, options, answer, createdBy, assessmentId, type } = req.body;
-        console.log('i am body',req.body);
+        const { firebase_id } = req.user;
+        const user = await User.findOne({ firebaseUid: firebase_id });
+        const createdBy = user._id;
+        const { questionText, options, answer, assessmentId, type } = req.body;
+
 
         // Validate input data
         if (!questionText || !options || !answer || !createdBy || !assessmentId || !type) {

@@ -5,8 +5,7 @@ const Assessment = require('../../models/Course/SectionItems/AssesmentSchema');
 
 exports.bulkUpload = async (req, res) => {
   try {
-    const { sectionId, data } = req.body;
-
+    const { sectionId, data } = req.body.content;
     // Validate Section
     const section = await Section.findById(sectionId);
     if (!section) {
