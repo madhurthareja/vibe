@@ -2,10 +2,15 @@ const Section = require('../../models/Course/SectionSchema');
 const Video = require('../../models/Course/SectionItems/VideoSchema');
 const Question = require('../../models/Course/SectionItems/QuestionSchema');
 const Assessment = require('../../models/Course/SectionItems/AssesmentSchema');
+const User = require('../../models/User/UserSchema');
 
 exports.bulkUpload = async (req, res) => {
   try {
     const { sectionId, data } = req.body.content;
+
+    const { firebase_id } = req.user;
+    const user = await User.findOne({ firebaseUid: firebase_id });
+    const createdBy = user._id;
     // Validate Section
     const section = await Section.findById(sectionId);
     if (!section) {
@@ -50,15 +55,15 @@ exports.bulkUpload = async (req, res) => {
 
         // Save the assessment to get the ID
         const savedAssessment = await assessment.save();
-
+        console.log(q.correct_answer);
         // Create the Question document linked to the assessment
         const question = new Question({
           assessment: savedAssessment._id,
-          createdBy: q.createdBy, // Get createdBy from request payload
+          createdBy: createdBy, // Get createdBy from request payload
           questionText: q.question,
           type: "multiple-choice",
           options: [q.option_1, q.option_2, q.option_3, q.option_4],
-          answer: [q[`option_${q.correct_answer}`]], // Map correct answer
+          answer: [q[`option_${parseInt(q.correct_answer) + 1}`]], // Map correct answer
           timeLimit: 30,
           points: 5
         });

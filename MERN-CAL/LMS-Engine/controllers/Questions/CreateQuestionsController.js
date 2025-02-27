@@ -7,10 +7,10 @@ exports.createQuestion = async (req, res) => {
         const user = await User.findOne({ firebaseUid: firebase_id });
         const createdBy = user._id;
         const { questionText, options, answer, assessmentId, type } = req.body;
-
+        console.log(createdBy)
 
         // Validate input data
-        if (!questionText || !options || !answer || !createdBy || !assessmentId || !type) {
+        if (!questionText || !options || !answer || !assessmentId || !type) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
