@@ -18,6 +18,8 @@ export interface AuthResponse {
   role: string
   email: string
   full_name: string
+  firebase_uid: string
+  user_id: string
 }
 
 // Institute data type
@@ -196,12 +198,24 @@ export const apiService = createApi({
         },
       }),
     }),
+    createQuestion: builder.mutation<void, void>({
+      query: ( questionData ) => ({
+        url: `/questions/createQuestion`,
+        method: 'POST',
+        body: questionData,
+        headers: {
+          Authorization: `Bearer ${Cookies.get('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+    }),
   }),
 })
 
 // Export hooks for using the API endpoints
 export const {
   useFetchItemsWithAuthQuery,
+  useCreateQuestionMutation,
   useLoginMutation,
   useFetchAssessmentWithAuthQuery,
   useSignupMutation,
@@ -394,26 +408,12 @@ export const anotherApiService = createApi({
         method: 'GET',
       }),
     }),
-    createQuestion: builder.mutation<void, void>({
-      query: ({ questionData }) => ({
-        url: `/questions/createQuestion`,
-        method: 'POST',
-        body: {
-          ...questionData,
-        },
-        headers: {
-          Authorization: `Bearer ${Cookies.get('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      }),
-    }),
   }),
 })
 
 // Export hooks for assessment endpoints
 export const {
   useStartAssessmentMutation,
-  useCreateQuestionMutation,
   useSubmitAssessmentMutation,
   useUpdateSectionItemProgressMutation,
   useFetchCourseProgressQuery,
