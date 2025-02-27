@@ -162,8 +162,8 @@ export const apiService = createApi({
       { sections: { id: number; title: string; content: string }[] },
       { courseId: number; moduleId: number }
     >({
-      query: ({ courseId, moduleId }) => ({
-        url: `/course/sections/?course_id=${courseId}&module_id=${moduleId}`,
+      query: ({ moduleId }) => ({
+        url: `/sections/section/?module_id=${moduleId}`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${Cookies.get('access_token')}`,
@@ -209,12 +209,60 @@ export const apiService = createApi({
         },
       }),
     }),
+    createCourse: builder.mutation<void, { title: string; description: string; startData: String, endDate: String; }>({
+      query: (courseData) => ({
+        url: '/courses/course',
+        method: 'POST',
+        body: courseData,
+        headers: {
+          Authorization: `Bearer ${Cookies.get('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+    }),
+    createModule: builder.mutation<void, { courseId: number; title: string; }>({
+      query: (moduleData) => ({
+        url: 'modules/module',
+        method: 'POST',
+        body: moduleData,
+        headers: {
+          Authorization: `Bearer ${Cookies.get('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+    }),
+    createSection: builder.mutation<void, { courseId: number; moduleId: number; title: string; content: string }>({
+      query: (sectionData) => ({
+        url: 'sections/section',
+        method: 'POST',
+        body: sectionData,
+        headers: {
+          Authorization: `Bearer ${Cookies.get('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+    }),
+    bulkContentUpload: builder.mutation<void, { content: any[] }>({
+      query: (uploadData) => ({
+      url: '/sectionitems/bulkUpload',
+      method: 'POST',
+      body: uploadData,
+      headers: {
+        Authorization: `Bearer ${Cookies.get('access_token')}`,
+        'Content-Type': 'application/json',
+      },
+      }),
+    }),
   }),
 })
 
 // Export hooks for using the API endpoints
 export const {
   useFetchItemsWithAuthQuery,
+  useCreateCourseMutation,
+  useCreateModuleMutation,
+  useCreateSectionMutation,
+  useBulkContentUploadMutation,
   useCreateQuestionMutation,
   useLoginMutation,
   useFetchAssessmentWithAuthQuery,
