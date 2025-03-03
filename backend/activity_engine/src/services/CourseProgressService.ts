@@ -592,7 +592,7 @@ export class CourseProgressService {
       modules: moduleIds,
       sections: sectionIds,
       sectionItems: sectionItemIds,
-       firstModule,
+      firstModule,
       firstSection,
       firstSectionItem,
     } = extractAllIds(courseData);

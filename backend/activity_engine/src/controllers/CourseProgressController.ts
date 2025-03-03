@@ -21,7 +21,6 @@ export class CourseProgressController {
           courseInstanceId,
           studentId,
           sectionItemId,
-          cascade ?? true
         );
 
       res.status(200).json(updatedEntities);
