@@ -52,11 +52,12 @@ export const anotherApiService = createApi({
         createdAt: string
       },
       {
-        assessmentId: number
-        courseId: number
+        assessmentId: string
+        courseId: string
+        sectionId: string
         attemptId: number
         answers: string
-        questionId: number
+        questionId: string
       }
     >({
       query: (submissionData) => ({

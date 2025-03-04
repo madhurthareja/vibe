@@ -476,10 +476,12 @@ const ContentScrollView = () => {
   const handleSubmit = () => {
     setSelectedAnswer(selectedOption)
     const question = AssessmentData[currentQuestionIndex]
+    console.log('i am section id for sunbmit : ',sectionId)
 
     submitAssessment({
       assessmentId: assessmentId,
       courseId: courseId,
+      sectionId: sectionId,
       attemptId: responseData,
       questionId: question.id,
       answers: selectedOption,

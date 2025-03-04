@@ -31,6 +31,7 @@ model submitSession {
   id              Int      @id @default(autoincrement())
   studentId       String
   courseId        String
+  sectionId       String  
   assessmentId    String
   attemptId       Int
   questionId      String
@@ -41,6 +42,7 @@ model submitSession {
   @@index([studentId])
   @@index([assessmentId])
 }
+
 
 model StudentCourseProgress {
   studentId        String
