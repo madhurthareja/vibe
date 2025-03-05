@@ -187,6 +187,7 @@ const ContentScrollView2 = () => {
   const [ytApiReady, setYtApiReady] = useState(false)
   const [videoQuality, setVideoQuality] =
     useState<keyof typeof qualityLabels>('large')
+  const [sectionstreak,setSectionstreak] = useState(0);
   const { data: assignmentsData } = useFetchItemsWithAuthQuery(sectionId)
   const content = useMemo(() => {
     return (assignmentsData || []) as {
@@ -561,9 +562,10 @@ const ContentScrollView2 = () => {
       attemptId: responseData ? parseInt(responseData, 10) : 0,
       questionId: question ? question.id : 0,
       answers: selectedOption.join(','),
-    })
+    })  
       .then((response) => {
         if (response.data) {
+          setSectionstreak(response.data.currentstreak)
           Cookies.set('gradingData', response.data.isAnswerCorrect.toString())
           //   setGradingData(response.data.isAnswerCorrect)
           if (response.data.isAnswerCorrect === false) {
