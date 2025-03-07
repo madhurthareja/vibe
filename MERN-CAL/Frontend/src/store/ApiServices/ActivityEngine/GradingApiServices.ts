@@ -50,7 +50,7 @@ export const anotherApiService = createApi({
         answers: string
         isAnswerCorrect: boolean
         createdAt: string
-        currentstreak: number;
+        currentStreak: number;
       },
       {
         assessmentId: string

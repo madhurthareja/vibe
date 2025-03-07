@@ -34,6 +34,7 @@ const persistConfig = {
     'weeklyProgress',
     'studentsProgress',
     'users',
+    'streak',
   ],
 }
 
@@ -69,6 +70,8 @@ interface AppState {
   progressUpdate: ReturnType<typeof progressUpdateReducer>
   weeklyProgress: ReturnType<typeof weeklyProgressReducer>
   studentsProgress: ReturnType<typeof studentsProgressReducer>
+  streak : ReturnType<typeof streakReducer>
+  users : ReturnType<typeof usersSlicereducer>
   [apiService.reducerPath]: ReturnType<typeof apiService.reducer>
   [anotherApiService.reducerPath]: ReturnType<typeof anotherApiService.reducer>
 }

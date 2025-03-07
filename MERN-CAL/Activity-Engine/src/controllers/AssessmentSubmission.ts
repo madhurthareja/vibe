@@ -59,49 +59,58 @@
 
 
 export async function submitAssessment(
-  req: Request,
-  res: Response
-): Promise<void> {
-    const { studentId, courseId, sectionId, assessmentId, attemptId, questionId, answers } = req.body;
-    const authorization = req.headers.authorization;
-
-    if (!authorization || !authorization.startsWith("Bearer ")) {
-      res.status(401).send({ message: "Unauthorized" });
-      return;
-    }
-
-    const idToken = authorization.split("Bearer ")[1];
-
-    const processedAnswers = Array.isArray(answers) ? answers : [answers];
-
-    try {
-        // ✅ Get the correct answers from LMS API
-        const { data: solutionData } = await axios.get(
-            `${LMS_URL}/api/questions/solution/?question_id=${questionId}`,
-            { headers: { Authorization: `Bearer ${idToken}` } }
-        );
-
-        // ✅ Check if the answer is correct
-        const isCorrect = Array.isArray(solutionData.answer) &&
-          processedAnswers.length === solutionData.answer.length &&
-          processedAnswers.every(answer => solutionData.answer.includes(answer));
-
-        // ✅ Store the submission in `submitSession`
-        const newSubmit = await prisma.submitSession.create({
-            data: { studentId, courseId, sectionId, assessmentId, attemptId, questionId, answers: processedAnswers, isAnswerCorrect: isCorrect }
-        });
-
-        // ✅ Calculate updated streaks (both longest and current)
-        const { currentStreak, longestStreak } = await calculateSectionStreak(studentId, sectionId, courseId);
-
-        // ✅ Return the updated streak along with submission details
-        res.json({ ...newSubmit, currentStreak, longestStreak });
-    } catch (error) {
-        console.error("Failed to submit assessment:", error);
-        res.status(500).send({
-            message: `Error submitting assessment: ${(error as Error).message || 'Unknown error'}`,
-        });
-    }
-}
+    req: Request,
+    res: Response
+  ): Promise<void> {
+      const { studentId, courseId, sectionId, assessmentId, attemptId, questionId, answers } = req.body;
+      const authorization = req.headers.authorization;
+  
+      if (!authorization || !authorization.startsWith("Bearer ")) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+      }
+  
+      const idToken = authorization.split("Bearer ")[1];
+  
+      const processedAnswers = Array.isArray(answers) ? answers : [answers];
+  
+      try {
+          // ✅ Get the correct answers from LMS API
+          const { data: solutionData } = await axios.get(
+              `${LMS_URL}/api/questions/solution/?question_id=${questionId}`,
+              { headers: { Authorization: `Bearer ${idToken}` } }
+          );
+  
+          // ✅ Check if the answer is correct
+          const isCorrect = Array.isArray(solutionData.answer) &&
+            processedAnswers.length === solutionData.answer.length &&
+            processedAnswers.every(answer => solutionData.answer.includes(answer));
+  
+          // ✅ Store the submission in `submitSession`
+          const newSubmit = await prisma.submitSession.create({
+              data: { studentId, courseId, sectionId, assessmentId, attemptId, questionId, answers: processedAnswers, isAnswerCorrect: isCorrect }
+          });
+  
+          // ✅ Calculate updated streaks
+          const { currentStreak, longestStreak } = await calculateSectionStreak(studentId, sectionId, courseId);
+  
+          // ✅ Store or update streaks in the Streak model
+          await prisma.streak.upsert({
+              where: { studentId_sectionId: { studentId, sectionId } }, // Using unique constraint
+              update: { currentStreak, longestStreak },
+              create: { studentId, sectionId, currentStreak, longestStreak }
+          });
+  
+          // ✅ Return the updated streak along with submission details
+          res.json({ ...newSubmit, currentStreak, longestStreak });
+      } catch (error) {
+          console.error("Failed to submit assessment:", error);
+          res.status(500).send({
+              message: `Error submitting assessment: ${(error as Error).message || 'Unknown error'}`,
+          });
+      }
+  }
+  
+  
 
 

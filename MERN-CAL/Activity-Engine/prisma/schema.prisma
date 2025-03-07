@@ -149,6 +149,18 @@ model AverageProgress {
   createdAt        DateTime @default(now())
 }
 
+model Streak {
+  id            Int     @id @default(autoincrement())
+  sectionId     String  
+  studentId     String  
+  currentStreak Int
+  longestStreak Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, sectionId]) // Ensures a student has only one streak per section
+}
+
 enum ProgressEnum {
   IN_PROGRESS
   INCOMPLETE
