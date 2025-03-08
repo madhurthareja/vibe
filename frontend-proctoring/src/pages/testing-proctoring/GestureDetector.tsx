@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   GestureRecognizer,
   FilesetResolver
@@ -13,6 +13,7 @@ const GestureDetector: React.FC<GestureDetectorProps> = ({ videoRef, trigger }) 
   const [gesture, setGesture] = useState<string | null>(null);
   const [gestureRecognizer, setGestureRecognizer] = useState<GestureRecognizer | null>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const recognitionLoopRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -27,7 +28,7 @@ const GestureDetector: React.FC<GestureDetectorProps> = ({ videoRef, trigger }) 
           baseOptions: {
             modelAssetPath:
               "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task",
-            delegate: "CPU" // ✅ Avoids WebGL issues
+            delegate: "CPU" // ✅ Ensures compatibility
           },
           runningMode: "IMAGE",
         });
@@ -52,40 +53,42 @@ const GestureDetector: React.FC<GestureDetectorProps> = ({ videoRef, trigger }) 
       console.warn("[GestureDetector] ❌ No video reference detected.");
       return;
     }
-    if (!trigger) {
-      console.log("[GestureDetector] ⏸️ Gesture detection paused.");
-      return;
+
+    // **Start Continuous Inference**
+    if (trigger) {
+      console.log("[GestureDetector] 🎥 Starting continuous gesture recognition...");
+      recognitionLoopRef.current = setInterval(async () => {
+        try {
+          const video = videoRef.current;
+          const results = await gestureRecognizer.recognize(video);
+
+          if (results.gestures.length > 0) {
+            setGesture(results.gestures[0][0].categoryName);
+            console.log(`[GestureDetector] ✋ Gesture Detected: ${results.gestures[0][0].categoryName}`);
+          } else {
+            setGesture("No Gesture Detected ❌");
+            console.log("[GestureDetector] ❌ No gesture detected.");
+          }
+        } catch (error) {
+          console.error("[GestureDetector] ❌ Error during inference:", error);
+        }
+      }, 500); // ✅ Runs every 500ms
+    } else {
+      console.log("[GestureDetector] 🛑 Stopping gesture detection.");
+      if (recognitionLoopRef.current) {
+        clearInterval(recognitionLoopRef.current);
+        recognitionLoopRef.current = null;
+      }
+      setGesture(null);
     }
 
-    console.log("[GestureDetector] 🎥 Capturing frame for gesture recognition...");
-
-    const processFrame = async () => {
-      try {
-        const video = videoRef.current;
-        console.log("[GestureDetector] 🔍 Running inference on video frame...");
-
-        const results = await gestureRecognizer.recognize(video);
-        console.log("[GestureDetector] 📝 Results:", results);
-
-        if (results.gestures.length > 0) {
-          setGesture(results.gestures[0][0].categoryName);
-          console.log(`[GestureDetector] ✋ Gesture Detected: ${results.gestures[0][0].categoryName}`);
-        } else {
-          setGesture("No Gesture Detected ❌");
-          console.log("[GestureDetector] ❌ No gesture detected.");
-        }
-      } catch (error) {
-        console.error("[GestureDetector] ❌ Error processing frame:", error);
+    return () => {
+      if (recognitionLoopRef.current) {
+        clearInterval(recognitionLoopRef.current);
+        recognitionLoopRef.current = null;
       }
     };
-
-    processFrame();
-
-    return () => {
-      console.log("[GestureDetector] 🛑 Stopping gesture detection.");
-      setGesture(null);
-    };
-  }, [trigger, videoRef, gestureRecognizer, modelLoaded]);
+  }, [trigger, videoRef, gestureRecognizer]);
 
   return (
     <div className="text-center mt-4">
