@@ -11,6 +11,7 @@ const SpeechDetector: React.FC<SpeechDetectorProps> = ({ setIsSpeaking }) => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const lastProcessedRef = useRef<number>(0); // Timestamp tracking
   const MODEL_PATH =
     "https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite";
 
@@ -47,20 +48,17 @@ const SpeechDetector: React.FC<SpeechDetectorProps> = ({ setIsSpeaking }) => {
 
       audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
       sourceRef.current = audioCtxRef.current.createMediaStreamSource(stream);
-      scriptNodeRef.current = audioCtxRef.current.createScriptProcessor(16384, 1, 1);
+      scriptNodeRef.current = audioCtxRef.current.createScriptProcessor(4096, 1, 1); // Reduced buffer size
 
-      scriptNodeRef.current.onaudioprocess = (event) => {
+      scriptNodeRef.current.onaudioprocess = async (event) => {
         if (!classifierRef.current) return;
 
+        const now = performance.now();
+        if (now - lastProcessedRef.current < 500) return; // Process every 500ms (reduces CPU load)
+        lastProcessedRef.current = now;
+
         const audioData = event.inputBuffer.getChannelData(0);
-        const results = classifierRef.current.classify(audioData, 16000);
-        const categories = results[0]?.classifications[0]?.categories;
-
-        const isSpeaking =
-          categories?.[0]?.categoryName === "Speech" &&
-          parseFloat(categories[0]?.score.toFixed(3)) > 0.5;
-
-        setIsSpeaking(isSpeaking ? "Yes" : "No");
+        processAudio(audioData);
       };
 
       sourceRef.current.connect(scriptNodeRef.current);
@@ -69,6 +67,25 @@ const SpeechDetector: React.FC<SpeechDetectorProps> = ({ setIsSpeaking }) => {
     } catch (error) {
       console.error("[SpeechDetector] ❌ Error accessing microphone:", error);
     }
+  };
+
+  const processAudio = async (audioData: Float32Array) => {
+    if (!classifierRef.current) return;
+
+    requestAnimationFrame(() => {
+      try {
+        const results = classifierRef.current!.classify(audioData, 16000);
+        const categories = results[0]?.classifications[0]?.categories;
+
+        const isSpeaking =
+          categories?.[0]?.categoryName === "Speech" &&
+          parseFloat(categories[0]?.score.toFixed(3)) > 0.5;
+
+        setIsSpeaking(isSpeaking ? "Yes" : "No");
+      } catch (error) {
+        console.error("[SpeechDetector] ❌ Error processing audio:", error);
+      }
+    });
   };
 
   const stopMicrophone = () => {
