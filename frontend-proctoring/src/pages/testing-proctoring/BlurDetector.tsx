@@ -59,7 +59,7 @@ const BlurDetection: React.FC<BlurDetectionProps> = ({ videoRef, setIsBlur }) =>
       }
     };
 
-    const interval = setInterval(captureFrame, 200);
+    const interval = setInterval(captureFrame, 500);
     return () => clearInterval(interval);
   }, [videoRef]);
 
