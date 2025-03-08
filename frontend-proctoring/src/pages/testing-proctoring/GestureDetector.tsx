@@ -5,7 +5,7 @@ import {
 } from "@mediapipe/tasks-vision";
 
 interface GestureDetectorProps {
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   trigger: boolean;
 }
 
@@ -60,6 +60,7 @@ const GestureDetector: React.FC<GestureDetectorProps> = ({ videoRef, trigger }) 
       recognitionLoopRef.current = setInterval(async () => {
         try {
           const video = videoRef.current;
+          if (!video) return;
           const results = await gestureRecognizer.recognize(video);
 
           if (results.gestures.length > 0) {

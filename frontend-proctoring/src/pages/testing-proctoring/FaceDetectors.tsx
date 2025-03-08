@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import useCameraProcessor from "./useCameraProcessor";
 import { Face, Keypoint } from "@tensorflow-models/face-detection";
 import GestureDetector from "./GestureDetector";
+import BlurDetection from "./BlurDetector";
 
 const isLookingAway = (face: Face): boolean => {
   if (!face || face.keypoints.length < 6) return false;
@@ -57,6 +58,7 @@ const isLookingAway = (face: Face): boolean => {
 const FaceDetectors: React.FC = () => {
   const { videoRef, modelReady, faces } = useCameraProcessor(1);
   const [gestureTrigger, setGestureTrigger] = useState(false);
+  const [isBlur, setIsBlur] = useState("No");
 
   return (
     <div className="container mx-auto p-4">
@@ -148,6 +150,11 @@ const FaceDetectors: React.FC = () => {
             : "Start Gesture Detection"}
         </button>
         <GestureDetector videoRef={videoRef} trigger={gestureTrigger} />
+        <BlurDetection videoRef={videoRef} setIsBlur={setIsBlur} />
+          <div className="text-center mt-4">
+            <h2 className="text-lg font-bold">Blur Detection</h2>
+            <p className="text-blue-600">{isBlur}</p>
+          </div>
       </div>
     </div>
   );
