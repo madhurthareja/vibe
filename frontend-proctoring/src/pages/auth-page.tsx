@@ -30,7 +30,7 @@ export default function AuthPage() {
       dispatch(setUser({
         uid: result.user.uid,
         email: result.user.email || "",
-        role: "student", // Placeholder role, change as needed
+        role: "teacher", // Placeholder role, change as needed
       }));
     } catch (error) {
       console.error("Email Login Failed", error);

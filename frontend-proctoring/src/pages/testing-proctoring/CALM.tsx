@@ -3,7 +3,6 @@ import GestureDetector from "./GestureDetector";
 import BlurDetection from "./BlurDetector";
 import SpeechDetector from "./SpeechDetector";
 import useCameraProcessor from "./useCameraProcessor";
-import { FaceDetector } from "@mediapipe/tasks-vision";
 import FaceDetectors from "./FaceDetectors";
 
 const CALM: React.FC = () => {

@@ -3,7 +3,7 @@ import TeacherLayout from "@/layouts/teacher-layout";
 import Dashboard from "@/pages/teacher/dashboard";
 import CreateCourse from "@/pages/teacher/create-course";
 import Editor from "@/pages/teacher/create-article";
-import FaceDetectors from "@/pages/testing-proctoring/face-detectors";
+import CALM from "@/pages/testing-proctoring/CALM";
 
 const teacherRoutes: RouteObject = {
   path: "/teacher",
@@ -27,7 +27,7 @@ const teacherRoutes: RouteObject = {
     },
     {
       path: "testing",
-      element: <FaceDetectors />,
+      element: <CALM></CALM>,
     }
   ],
 };

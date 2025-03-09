@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
 import { JSX } from "react";
 import React from "react";
+import CALM from "@/pages/testing-proctoring/CALM";
 
 // ✅ Role-Based Route Guard
 function ProtectedRoute({ role, children }: { role: "teacher" | "student"; children: JSX.Element }) {
@@ -23,7 +24,7 @@ export default function AppRoutes() {
                 <Route path="/auth" element={<AuthPage />} />
 
                 {/* ✅ Register Teacher Routes */}
-                <Route path={teacherRoutes.path} element={teacherRoutes.element && React.isValidElement(teacherRoutes.element) ? <ProtectedRoute role="teacher">{teacherRoutes.element}</ProtectedRoute> : <Navigate to="/auth" />}>
+                <Route path={teacherRoutes.path} element={teacherRoutes.element && React.isValidElement(teacherRoutes.element) ? teacherRoutes.element : <Navigate to="/teacher/testing" />}>
                     {teacherRoutes.children?.map((child, idx) => (
                         <Route
                             key={idx}
@@ -34,8 +35,8 @@ export default function AppRoutes() {
                     ))}
                 </Route>
 
-
-                <Route path="/" element={<Navigate to="/auth" />} />
+                <Route path="/proctoring" element={<><CALM></CALM></>}></Route>
+                <Route path="/" element={<Navigate to="/teacher/testing" />} />
             </Routes>
         </BrowserRouter>
     );
