@@ -132,7 +132,7 @@ export function SidebarLeft({
    console.log('fetching streak');
    const studentId = Cookies.get('user_id')
    try {
-    const response = await fetch('/streak', {
+    const response = await fetch('http://localhost:8080/streak', {
       method: 'POST',
       headers: {
        'Content-Type': 'application/json',

@@ -1,8 +1,8 @@
-import express from 'express'
-import { FetchStreak } from '../controllers/FetchStreak'
+import { Router } from 'express';
+import { fetchStreak } from '../controllers/FetchStreak'
 
-const router = express.Router()
+const router = Router()
 
-router.post('/streak', FetchStreak)
+router.post("/streak", fetchStreak)
 
 export default router   

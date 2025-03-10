@@ -1,9 +1,9 @@
-import { Request, Response, RequestHandler } from 'express';
+import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const FetchStreak: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export async function fetchStreak(req: Request, res: Response): Promise<void> {
     const { studentId, sectionId } = req.body;
 
     if (!studentId || !sectionId) {
@@ -36,4 +36,4 @@ export const FetchStreak: RequestHandler = async (req: Request, res: Response): 
         res.status(500).json({ error: 'Internal server error' });
         return;
     }
-};
+}
