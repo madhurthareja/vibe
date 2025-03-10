@@ -3,6 +3,6 @@ import { FetchStreak } from '../controllers/FetchStreak'
 
 const router = express.Router()
 
-router.get('/streak', FetchStreak)
+router.post('/streak', FetchStreak)
 
-export default router
+export default router   

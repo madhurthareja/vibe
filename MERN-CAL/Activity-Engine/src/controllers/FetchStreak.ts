@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const FetchStreak: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    const { studentId, sectionId } = req.query;
+    const { studentId, sectionId } = req.body;
 
     if (!studentId || !sectionId) {
         res.status(400).json({ error: 'Missing studentId or sectionId' });
