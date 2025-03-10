@@ -12,9 +12,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 // Read and parse the CORS environment variable
-const allowedOrigins = process.env.AE_CORS_ALLOWED_ORIGINS
-  ? process.env.AE_CORS_ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : [];
+const allowedOrigins = '*';
 console.log("Allowed CORS Origins:", allowedOrigins); // Debugging
 const app = express();
 
@@ -44,12 +42,6 @@ app.use(BulkProcess);
 app.use(FetchProgress);
 
 exports.activityEngine = https.onRequest(app);
-<<<<<<< HEAD
 app.listen(PORT, () => {
-     console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
-=======
-// app.listen(PORT, () => {
-//      console.log(`Server is running on http://localhost:${PORT}`);
-// });
->>>>>>> origin/master

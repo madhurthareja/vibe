@@ -216,8 +216,9 @@ export function SidebarLeft({
                                   isActive={item.isActive}
                                 >
                                   <div
-                                    className='flex items-center gap-2'
+                                    className='flex items-center gap-2 w-full'
                                     onClick={() => {
+<<<<<<< HEAD
                                       fetchStreak(sectionId);
                                       if (item.item_type === 'Video') {
                                         navigate('/content-scroll-view', {
@@ -232,17 +233,37 @@ export function SidebarLeft({
                                         item.item_type === 'Assessment'
                                       ) {
                                         toast('Watch video first')
+=======
+                                      switch (item.item_type) {
+                                        case 'Video':
+                                          navigate('/content-scroll-view', {
+                                            state: {
+                                              assignment,
+                                              sectionId,
+                                              courseId,
+                                              moduleId,
+                                            },
+                                          })
+                                          break
+                                        case 'Assessment':
+                                          toast('Watch video first')
+                                          break
+                                        default:
+                                          // Handle other cases or do nothing
+                                          break
+>>>>>>> origin/master
                                       }
                                     }}
                                   >
                                     <span
-                                      className={`size-2 rounded-full ${itemDotColor}`}
-                                    />{' '}
-                                    {/* Item status dot */}
-                                    {item.title}
+                                      className={`flex-none size-2 rounded-full ${itemDotColor}`}
+                                    ></span>
+                                    <span className='flex-grow truncate'>
+                                      {item.title}
+                                    </span>
                                     {(item.item_type === 'assessment' ||
                                       itemProgress === 'INCOMPLETE') && (
-                                      <Lock className='ml-auto' />
+                                      <Lock className='ml-auto flex-none' />
                                     )}
                                   </div>
                                 </SidebarMenuSubButton>
