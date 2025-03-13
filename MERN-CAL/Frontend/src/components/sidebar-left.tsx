@@ -218,7 +218,6 @@ export function SidebarLeft({
                                   <div
                                     className='flex items-center gap-2 w-full'
                                     onClick={() => {
-<<<<<<< HEAD
                                       fetchStreak(sectionId);
                                       if (item.item_type === 'Video') {
                                         navigate('/content-scroll-view', {
@@ -233,25 +232,6 @@ export function SidebarLeft({
                                         item.item_type === 'Assessment'
                                       ) {
                                         toast('Watch video first')
-=======
-                                      switch (item.item_type) {
-                                        case 'Video':
-                                          navigate('/content-scroll-view', {
-                                            state: {
-                                              assignment,
-                                              sectionId,
-                                              courseId,
-                                              moduleId,
-                                            },
-                                          })
-                                          break
-                                        case 'Assessment':
-                                          toast('Watch video first')
-                                          break
-                                        default:
-                                          // Handle other cases or do nothing
-                                          break
->>>>>>> origin/master
                                       }
                                     }}
                                   >

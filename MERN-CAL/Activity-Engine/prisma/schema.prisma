@@ -137,9 +137,11 @@ model StudentAssessmentAttemptSummary {
 model TotalProgress {
   id               Int      @id @default(autoincrement())
   studentId        String
-  progress         Int
   courseInstanceId String
+  progress         Int
   createdAt        DateTime @default(now())
+
+  @@unique([studentId, courseInstanceId]) // Add this line
 }
 
 model AverageProgress {

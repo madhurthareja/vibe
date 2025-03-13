@@ -2,23 +2,18 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useLogoutMutation } from '@/store/apiService'
 import { logoutState } from '@/store/slices/authSlice'
 import Cookies from 'js-cookie'
-import { useDispatch, useSelector } from 'react-redux' // ✅ Added useSelector
-import { useNavigate,useLocation } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Flame } from 'lucide-react' // 🔥 Import aesthetic icon
 
 export function DashboardDropdown() {
   const navigate = useNavigate()
@@ -42,12 +37,19 @@ export function DashboardDropdown() {
   }
 
   return (
-    <div className="flex items-center gap-4"> {/* ✅ Added flex container to align elements */}
-      {/* ✅ Display Streak */}
-      {location.pathname === '/content-scroll-view' &&(<span className="text-gray-600 text-sm">🔥 Streak: {streak}</span>
-)}
+    <div className="flex items-center gap-4"> {/* ✅ Flex container for alignment */}
+      
+      {/* ✅ Stylish Streak Display */}
+      {location.pathname === '/content-scroll-view' && (
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-lg shadow-sm">
+          <Flame className="w-4 h-4 text-orange-500" /> {/* 🔥 Aesthetic fire icon */}
+          <span className="text-sm text-gray-700">
+            {`Streak: ${streak?streak:0}`} {/* ✅ Handles empty streak */}
+          </span>
+        </div>
+      )}
 
-      {/* ✅ Moved the Menu button to the left */}
+      {/* ✅ Menu Button */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button>Menu</Button>
@@ -65,7 +67,6 @@ export function DashboardDropdown() {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             Log out
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
