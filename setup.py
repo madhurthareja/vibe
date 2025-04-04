@@ -111,7 +111,7 @@ class PipelineStep:
 
 class WelcomeStep(PipelineStep):
     def __init__(self):
-        super().__init__("welcome", "Show welcome message and select environment/setup")
+        super().__init__("Welcome", "Select environment and setup type")
 
     def run(self, state):
         title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
@@ -129,7 +129,7 @@ class WelcomeStep(PipelineStep):
 
 class ToolchainCheckStep(PipelineStep):
     def __init__(self):
-        super().__init__("toolchain", "Verify Node.js, npm, pnpm, and firebase-tools are installed")
+        super().__init__("ToolChain Check", "Verify Node.js, npm, pnpm, and firebase-tools are installed")
 
     def run(self, state):
         def check_command_exists(command):
@@ -164,7 +164,7 @@ class ToolchainCheckStep(PipelineStep):
 
 class FirebaseLoginStep(PipelineStep):
     def __init__(self):
-        super().__init__("firebase_login", "Ensure Firebase CLI is logged in")
+        super().__init__("Firebase Login", "Ensure Firebase CLI is logged in")
 
     def run(self, state):
         result = subprocess.run([FIREBASE_CLI, "login:list"], capture_output=True, text=True, shell=(platform.system() == "Windows"))
@@ -174,7 +174,7 @@ class FirebaseLoginStep(PipelineStep):
 
 class FirebaseEmulatorsStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("emulators", "Initialize Firebase emulators",
+        super().__init__("Emulators", "Initialize Firebase emulators",
                                     instructions="Please choose ONLY the following emulators when prompted:\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]")
         self.backend_dir = backend_dir
 
@@ -184,7 +184,7 @@ class FirebaseEmulatorsStep(PipelineStep):
 
 class EnvFileStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("env", "Create .env file and set MongoDB URI",
+        super().__init__("Env Variables", "Create .env file and set MongoDB URI",
                                     instructions="""
                                     [bold]MongoDB URI Instructions:[/bold]
 
@@ -210,7 +210,7 @@ class EnvFileStep(PipelineStep):
 
 class PackageInstallStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("packages", "Install backend dependencies")
+        super().__init__("Packages", "Install backend dependencies")
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -220,7 +220,7 @@ class PackageInstallStep(PipelineStep):
 
 class MongoDBBinaryStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("mongodb_binaries", "Ensure MongoDB binaries are downloaded")
+        super().__init__("MongoDB Test Binaries", "Ensure MongoDB binaries for in-memory server are downloaded")
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -243,7 +243,7 @@ class MongoDBBinaryStep(PipelineStep):
 
 class TestStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("tests", "Run backend tests")
+        super().__init__("Tests", "Run backend tests")
         self.backend_dir = backend_dir
 
     def run(self, state):
