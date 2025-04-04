@@ -32,6 +32,12 @@ STATE_FILE = ".vibe_setup_state.json"
 FIREBASE_CLI = "firebase.cmd" if platform.system() == "Windows" else "firebase"
 NPM_CLI = "npm.cmd" if platform.system() == "Windows" else "npm"
 
+def clear_screen():
+    if platform.system() == "Windows":
+        subprocess.run(["cls"], shell=True)
+    else:
+        subprocess.run(["clear"], shell=True)
+
 # ------------------ Pipeline State Manager ------------------
 
 class SetupState:
@@ -110,7 +116,6 @@ class WelcomeStep(PipelineStep):
         super().__init__("welcome", "Show welcome message and select environment/setup")
 
     def run(self, state):
-        console.clear()
         title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
         console.print(Align.center(title))
         panel = Panel("[green]Welcome to the ViBe backend setup process![/green]", title="[bold cyan]Welcome[/bold cyan]", border_style="green", box=box.ROUNDED)
@@ -123,12 +128,12 @@ class WelcomeStep(PipelineStep):
         state.update("setup_type", setup_type)
         state.update(self.name, True)
 
+
 class ToolchainCheckStep(PipelineStep):
     def __init__(self):
         super().__init__("toolchain", "Verify Node.js, npm, and pnpm are installed")
 
     def run(self, state):
-        console.clear()
         def check_command_exists(command):
             return shutil.which(command) is not None
 
@@ -150,7 +155,6 @@ class FirebaseLoginStep(PipelineStep):
         super().__init__("firebase_login", "Ensure Firebase CLI is logged in")
 
     def run(self, state):
-        console.clear()
         result = subprocess.run([FIREBASE_CLI, "login:list"], capture_output=True, text=True, shell=(platform.system() == "Windows"))
         if "No authorized accounts" in result.stdout:
             subprocess.run([FIREBASE_CLI, "login"], check=True, shell=(platform.system() == "Windows"))
@@ -163,8 +167,6 @@ class FirebaseEmulatorsStep(PipelineStep):
         self.backend_dir = backend_dir
 
     def run(self, state):
-        console.clear()
-        self.display_instructions()
         subprocess.run([FIREBASE_CLI, "init", "emulators"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
         state.update(self.name, True)
 
@@ -187,8 +189,6 @@ class EnvFileStep(PipelineStep):
         self.backend_dir = backend_dir
 
     def run(self, state):
-        console.clear()
-        self.display_instructions()
         env_path = os.path.join(self.backend_dir, ".env")
         if not os.path.exists(env_path):
             uri = questionary.text("Paste your MongoDB URI:").ask()
@@ -202,9 +202,9 @@ class PackageInstallStep(PipelineStep):
         self.backend_dir = backend_dir
 
     def run(self, state):
-        console.clear()
-        subprocess.run(["pnpm", "install"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
-        state.update(self.name, True)
+        with console.status("Installing backend dependencies..."):
+            subprocess.run(["pnpm", "install"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
+            state.update(self.name, True)
 
 class TestStep(PipelineStep):
     def __init__(self, backend_dir):
@@ -212,7 +212,6 @@ class TestStep(PipelineStep):
         self.backend_dir = backend_dir
 
     def run(self, state):
-        console.clear()
         with console.status("Running backend tests..."):
             result = subprocess.run(["pnpm", "run", "test:ci"], cwd=self.backend_dir, shell=(platform.system() == "Windows"))
             if result.returncode == 0:
@@ -245,17 +244,17 @@ class SetupPipeline:
                 status = "⏳"
             table.add_row(step.name, step.description, status)
 
-        console.clear()
         console.print(table)
 
     def run(self):
         for step in self.steps:
-            self.print_progress_table(step.name)
             if step.should_run(self.state):
+                clear_screen()
+                self.print_progress_table(step.name)
                 if step.instructions:
                     step.display_instructions()
-                self.print_progress_table(step.name) #print again after instructions
                 step.run(self.state)
+        clear_screen()
         self.print_progress_table("done")
         console.print("\n[bold green]🎉 Setup completed![/bold green]")
 
