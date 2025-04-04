@@ -67,6 +67,7 @@ class SetupState:
 
     def print_final_progress_table(self):
         table = Table(title="ViBe Setup Progress", box=box.ROUNDED)
+        table.add_column("#", justify="center")
         table.add_column("Step", justify="left")
         table.add_column("Description", justify="left")
         table.add_column("Status", justify="center")
@@ -82,12 +83,12 @@ class SetupState:
             TestStep(os.path.join(os.getcwd(), "backend"))
         ]
 
-        for step in steps:
+        for index, step in enumerate(steps, 1):
             if self.get(step.name):
                 status = "✅"
             else:
                 status = "❌"
-            table.add_row(step.name, step.description, status)
+            table.add_row(str(index), step.name, step.description, status)
 
         console.print(table)
 
@@ -178,7 +179,7 @@ class FirebaseLoginStep(PipelineStep):
 class FirebaseEmulatorsStep(PipelineStep):
     def __init__(self, backend_dir):
         super().__init__("emulators", "Initialize Firebase emulators",
-                         instructions="Please choose ONLY the following emulators when prompted:\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]")
+                                    instructions="Please choose ONLY the following emulators when prompted:\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]")
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -188,19 +189,19 @@ class FirebaseEmulatorsStep(PipelineStep):
 class EnvFileStep(PipelineStep):
     def __init__(self, backend_dir):
         super().__init__("env", "Create .env file and set MongoDB URI",
-                         instructions="""
-                        [bold]MongoDB URI Instructions:[/bold]
+                                    instructions="""
+                                    [bold]MongoDB URI Instructions:[/bold]
 
-                        1.  Go to [link=https://www.mongodb.com/atlas/database]MongoDB Atlas[/link] and sign up or log in.
-                        2.  Create a new project and cluster.
-                        3.  Navigate to the 'Database Access' section in your project.
-                        4.  Create a new database user with appropriate permissions.
-                        5.  Go to the 'Clusters' section and click 'Connect' on your cluster.
-                        6.  Select 'Connect your application'.
-                        7.  Copy the connection string.
-                        8.  [bold red]Replace '<password>' in the copied string with the actual password[/bold red] you created for the database user.
-                        9.  Paste the modified connection string below.
-                        """)
+                                    1.  Go to [link=https://www.mongodb.com/atlas/database]MongoDB Atlas[/link] and sign up or log in.
+                                    2.  Create a new project and cluster.
+                                    3.  Navigate to the 'Database Access' section in your project.
+                                    4.  Create a new database user with appropriate permissions.
+                                    5.  Go to the 'Clusters' section and click 'Connect' on your cluster.
+                                    6.  Select 'Connect your application'.
+                                    7.  Copy the connection string.
+                                    8.  [bold red]Replace '<password>' in the copied string with the actual password[/bold red] you created for the database user.
+                                    9.  Paste the modified connection string below.
+                                    """)
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -269,18 +270,19 @@ class SetupPipeline:
 
     def print_progress_table(self, current_step_name):
         table = Table(title="ViBe Setup Progress", box=box.ROUNDED)
+        table.add_column("#", justify="center")
         table.add_column("Step", justify="left")
         table.add_column("Description", justify="left")
         table.add_column("Status", justify="center")
 
-        for step in self.steps:
+        for index, step in enumerate(self.steps, 1):
             if self.state.get(step.name):
                 status = "✅"
             elif step.name == current_step_name:
                 status = "🔄"
             else:
                 status = "⏳"
-            table.add_row(step.name, step.description, status)
+            table.add_row(str(index), step.name, step.description, status)
 
         console.print(table)
 
