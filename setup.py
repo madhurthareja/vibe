@@ -131,7 +131,7 @@ class WelcomeStep(PipelineStep):
 
 class ToolchainCheckStep(PipelineStep):
     def __init__(self):
-        super().__init__("toolchain", "Verify Node.js, npm, and pnpm are installed")
+        super().__init__("toolchain", "Verify Node.js, npm, pnpm, and firebase-tools are installed")
 
     def run(self, state):
         def check_command_exists(command):
@@ -146,6 +146,10 @@ class ToolchainCheckStep(PipelineStep):
         if not check_command_exists("pnpm"):
             console.print("[yellow]⚠ Installing pnpm...[/yellow]")
             subprocess.run([NPM_CLI, "install", "-g", "pnpm"], check=True, shell=(platform.system() == "Windows"))
+
+        if not check_command_exists("firebase"):
+            console.print("[yellow]⚠ Installing firebase-tools...[/yellow]")
+            subprocess.run(["pnpm", "install", "-g", "firebase-tools"], check=True, shell=(platform.system() == "Windows"))
 
         console.print(":white_check_mark: [green]Toolchain verified.[/green]")
         state.update(self.name, True)
