@@ -28,7 +28,7 @@ import questionary
 
 console = Console()
 
-STATE_FILE = ".vibe_setup_state.json"
+STATE_FILE = ".vibe.json"
 FIREBASE_CLI = "firebase.cmd" if platform.system() == "Windows" else "firebase"
 NPM_CLI = "npm.cmd" if platform.system() == "Windows" else "npm"
 
@@ -161,6 +161,11 @@ class ToolchainCheckStep(PipelineStep):
             subprocess.run(["pnpm", "install", "-g", "firebase-tools"], check=True, shell=(platform.system() == "Windows"))
 
         console.print(":white_check_mark: [green]Toolchain verified.[/green]")
+        
+        # run pnpm install command in the current directory
+        console.print("[yellow]⚠ Installing pnpm dependencies...[/yellow]")
+        subprocess.run(["pnpm", "install"], check=True, shell=(platform.system() == "Windows"))
+        console.print("[green]✅ pnpm dependencies installed successfully.[/green]")
         state.update(self.name, True)
 
 class FirebaseLoginStep(PipelineStep):
