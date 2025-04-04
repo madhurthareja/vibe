@@ -6,6 +6,7 @@ import platform
 import os
 import urllib.request
 import tempfile
+import re
 
 # Ensure required Python packages
 def install_package(package):
@@ -21,6 +22,7 @@ try:
     from rich.text import Text
     from rich.align import Align
     from rich import box
+    from rich.markdown import Markdown
 except ImportError:
     install_package("rich")
     from rich.console import Console
@@ -28,6 +30,7 @@ except ImportError:
     from rich.text import Text
     from rich.align import Align
     from rich import box
+    from rich.markdown import Markdown
 
 try:
     import questionary
@@ -75,7 +78,6 @@ def setup_message(mode, sub=None):
         console.print(f"\n:rocket: [bold green]Production Setup Selected[/bold green]")
 
     console.print("\n[bold magenta]⚙️  Setting up the environment...[/bold magenta]\n")
-
 
 # ------------------ TOOLCHAIN CHECK ------------------
 
@@ -134,6 +136,8 @@ def ensure_node_tools():
     else:
         console.print(":white_check_mark: [green]pnpm is installed.[/green]")
 
+# ------------------ MongoDB Memory Server Support ------------------
+
 def ensure_mongodb_binaries():
     console.print("[cyan]Ensuring MongoDB binaries are downloaded for mongodb-memory-server...[/cyan]")
 
@@ -142,8 +146,8 @@ def ensure_mongodb_binaries():
 
     (async () => {
       const mongod = await MongoMemoryServer.create();
-      await mongod.getUri(); // this ensures binary is downloaded
-      await mongod.stop();   // immediately stop after downloading
+      await mongod.getUri();
+      await mongod.stop();
     })();
     """
 
@@ -154,9 +158,47 @@ def ensure_mongodb_binaries():
         console.print(":x: [red]Failed to download MongoDB binaries. Please check your internet or proxy settings.[/red]")
         sys.exit(1)
 
+# ------------------ Utility ------------------
 
+def add_or_update_env_variable(key, value, env_path=".env"):
+    lines = []
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            lines = f.read().splitlines()
 
-# ------------------ BACKEND SETUP ------------------
+    existing = {line.split("=")[0]: line for line in lines if "=" in line}
+    existing[key] = f'{key}="{value}"'
+
+    with open(env_path, "w") as f:
+        for line in existing.values():
+            f.write(line + "\n")
+
+    console.print(f":pencil: [blue]{key}[/blue] updated in {env_path}")
+
+# ------------------ Backend Setup ------------------
+
+def prompt_for_db_uri_if_needed():
+    env_file = ".env"
+    uri = ""
+    if os.path.exists(env_file):
+        with open(env_file, "r") as f:
+            content = f.read()
+            match = re.search(r'^DB_URL=(.*)', content, re.MULTILINE)
+            if match:
+                uri = match.group(1).strip()
+    if not uri:
+        console.print(Panel.fit("🌐 DB_URL is not set. Let's help you set it up!", style="bold yellow"))
+        md = Markdown("""
+### How to Get Your MongoDB Atlas URI:
+1. Go to [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a free account and cluster.
+3. Choose "Connect", then "Connect Your Application".
+4. Copy the MongoDB URI string (e.g. `mongodb+srv://...`).
+5. Paste it below.
+""")
+        console.print(md)
+        uri = questionary.text("Paste your MongoDB URI").ask()
+        add_or_update_env_variable("DB_URL", uri)
 
 def validate_env_file(required_keys):
     if not os.path.exists(".env"):
@@ -171,38 +213,34 @@ def validate_env_file(required_keys):
     else:
         console.print(":white_check_mark: [green].env has all required keys.[/green]")
 
-
-def rename_backend_files():
+def rename_backend_files(is_dev=True):
     env_example = ".env.example"
-    sentry_example = ".sentryclirc.example"
     env_file = ".env"
+    sentry_example = ".sentryclirc.example"
     sentry_file = ".sentryclirc"
 
     if os.path.exists(env_example):
         os.rename(env_example, env_file)
         console.print(":white_check_mark: [green].env.example → .env[/green]")
-    else:
-        console.print(":warning: [yellow].env.example not found[/yellow]")
 
-    if os.path.exists(sentry_example):
+    if not is_dev and os.path.exists(sentry_example):
         os.rename(sentry_example, sentry_file)
         console.print(":white_check_mark: [green].sentryclirc.example → .sentryclirc[/green]")
-    else:
-        console.print(":warning: [yellow].sentryclirc.example not found[/yellow]")
+    elif is_dev:
+        console.print(":information_source: [blue].sentryclirc not needed in development.[/blue]")
 
-    validate_env_file(["SENTRY_DSN", "FIREBASE_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "DB_URL"])
-
+    validate_env_file(["DB_URL"])
 
 def run_backend_setup():
     backend_dir = os.path.join(os.getcwd(), "backend")
     os.chdir(backend_dir)
 
-    rename_backend_files()
+    rename_backend_files(is_dev=True)
+    prompt_for_db_uri_if_needed()
 
     console.print("[cyan]Installing packages with pnpm...[/cyan]")
     subprocess.run(["pnpm", "install"])
 
-    # Ask if user wants to run tests
     run_tests = questionary.confirm("Do you want to run tests?").ask()
     if run_tests:
         ensure_mongodb_binaries()
@@ -217,14 +255,13 @@ def run_backend_setup():
         else:
             console.print(":x: [red]Tests failed. Please fix the issues before starting the server.[/red]")
     else:
-        tests_passed = True  # Allow proceeding if user skips tests
+        tests_passed = True
 
     if tests_passed:
         if questionary.confirm("Do you want to start the backend server now?").ask():
             subprocess.run(["pnpm", "run", "dev"])
 
-
-# ------------------ MAIN ------------------
+# ------------------ Main ------------------
 
 def main():
     show_welcome()
@@ -234,15 +271,13 @@ def main():
     if mode == "Development":
         sub = get_dev_choice()
         setup_message(mode, sub)
-
         if sub in ["Backend", "Both"]:
             run_backend_setup()
-        # Frontend logic can be added here later
-
+        else:
+            console.print("[yellow]Frontend setup is not implemented yet.[/yellow]")
     else:
         setup_message(mode)
-        # Production logic can be added here later
-
+        console.print(Panel.fit("[red]⚠ Production setup is not yet implemented.[/red]\nComing soon with a full CI/CD pipeline.", style="bold red"))
 
 if __name__ == "__main__":
     main()
