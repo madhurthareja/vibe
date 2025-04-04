@@ -78,6 +78,7 @@ class SetupState:
             FirebaseEmulatorsStep(os.path.join(os.getcwd(), "backend")),
             EnvFileStep(os.path.join(os.getcwd(), "backend")),
             PackageInstallStep(os.path.join(os.getcwd(), "backend")),
+            MongoDBBinaryStep(os.path.join(os.getcwd(), "backend")),
             TestStep(os.path.join(os.getcwd(), "backend"))
         ]
 
@@ -220,6 +221,29 @@ class PackageInstallStep(PipelineStep):
             subprocess.run(["pnpm", "install"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
             state.update(self.name, True)
 
+class MongoDBBinaryStep(PipelineStep):
+    def __init__(self, backend_dir):
+        super().__init__("mongodb_binaries", "Ensure MongoDB binaries are downloaded")
+        self.backend_dir = backend_dir
+
+    def run(self, state):
+        console.print("[cyan]Ensuring MongoDB binaries are downloaded for mongodb-memory-server...[/cyan]")
+        script = """
+        import { MongoMemoryServer } from 'mongodb-memory-server';
+
+        (async () => {
+            const mongod = await MongoMemoryServer.create();
+            await mongod.getUri();
+            await mongod.stop();
+        })();
+        """
+        try:
+            subprocess.run(["pnpm", "ts-node", "-e", script], check=True, cwd=self.backend_dir, shell=(platform.system() == "Windows"))
+            state.update(self.name, True)
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]❌ Failed to download MongoDB binaries: {e}[/red]")
+            sys.exit(1)
+
 class TestStep(PipelineStep):
     def __init__(self, backend_dir):
         super().__init__("tests", "Run backend tests")
@@ -289,6 +313,7 @@ def main():
         FirebaseEmulatorsStep(backend_dir),
         EnvFileStep(backend_dir),
         PackageInstallStep(backend_dir),
+        MongoDBBinaryStep(backend_dir),
         TestStep(backend_dir)
     ]
 
