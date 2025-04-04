@@ -134,6 +134,27 @@ def ensure_node_tools():
     else:
         console.print(":white_check_mark: [green]pnpm is installed.[/green]")
 
+def ensure_mongodb_binaries():
+    console.print("[cyan]Ensuring MongoDB binaries are downloaded for mongodb-memory-server...[/cyan]")
+
+    script = """
+    import { MongoMemoryServer } from 'mongodb-memory-server';
+
+    (async () => {
+      const mongod = await MongoMemoryServer.create();
+      await mongod.getUri(); // this ensures binary is downloaded
+      await mongod.stop();   // immediately stop after downloading
+    })();
+    """
+
+    try:
+        subprocess.run(["node", "-e", script], check=True)
+        console.print(":white_check_mark: [green]MongoDB binaries downloaded and ready.[/green]")
+    except subprocess.CalledProcessError:
+        console.print(":x: [red]Failed to download MongoDB binaries. Please check your internet or proxy settings.[/red]")
+        sys.exit(1)
+
+
 
 # ------------------ BACKEND SETUP ------------------
 
@@ -183,6 +204,8 @@ def run_backend_setup():
 
     # Ask if user wants to run tests
     run_tests = questionary.confirm("Do you want to run tests?").ask()
+    if run_tests:
+        ensure_mongodb_binaries()
     tests_passed = False
 
     if run_tests:
