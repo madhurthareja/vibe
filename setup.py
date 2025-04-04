@@ -72,16 +72,12 @@ class SetupState:
         table.add_column("Description", justify="left")
         table.add_column("Status", justify="center")
 
-        steps = [
-            WelcomeStep(),
-            ToolchainCheckStep(),
-            FirebaseLoginStep(),
-            FirebaseEmulatorsStep(os.path.join(os.getcwd(), "backend")),
-            EnvFileStep(os.path.join(os.getcwd(), "backend")),
-            PackageInstallStep(os.path.join(os.getcwd(), "backend")),
-            MongoDBBinaryStep(os.path.join(os.getcwd(), "backend")),
-            TestStep(os.path.join(os.getcwd(), "backend"))
-        ]
+        # Get the steps from the state itself, assuming the state has the list of steps
+        steps = self.get("steps", [])
+
+        if not steps:
+            console.print("[red]No steps found in state. Cannot show summary.[/red]")
+            return
 
         for index, step in enumerate(steps, 1):
             if self.get(step.name):
@@ -287,6 +283,10 @@ class SetupPipeline:
         console.print(table)
 
     def run(self):
+        # Store a JSON-serializable representation of steps in the state
+        serializable_steps = [{"name": step.name, "description": step.description} for step in self.steps]
+        self.state.update("steps", serializable_steps)
+
         for step in self.steps:
             if step.should_run(self.state):
                 clear_screen()
@@ -297,6 +297,8 @@ class SetupPipeline:
         clear_screen()
         self.print_progress_table("done")
         console.print("\n[bold green]🎉 Setup completed![/bold green]")
+
+
 
 # ------------------ Main ------------------
 
