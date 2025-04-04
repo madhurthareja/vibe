@@ -1,4 +1,6 @@
-import './instrument';
+if (process.env.NODE_ENV === 'production') {
+  import('./instrument');
+}
 import Express from 'express';
 import Sentry from '@sentry/node';
 import {loggingHandler} from 'shared/middleware/loggingHandler';
