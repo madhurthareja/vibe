@@ -13,10 +13,10 @@
     "start": "node dist/index.js",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org aditya-bmv --project node-express ./build && sentry-cli sourcemaps upload --org aditya-bmv --project node-express ./build",
     "docs": "typedoc",
-    "lint": "gts lint",
-    "clean": "gts clean",
+    "lint": "pnpx gts lint",
+    "clean": "pnpx gts clean",
     "compile": "tsc",
-    "fix": "gts fix",
+    "fix": "pnpx gts fix",
     "prepare": "pnpm run compile",
     "pretest": "pnpm run compile",
     "posttest": "pnpm run lint"
