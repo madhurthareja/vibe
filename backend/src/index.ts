@@ -12,6 +12,7 @@ import Container from 'typedi';
 import {IDatabase} from 'shared/database';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from 'config/db';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 export const application = Express();
 
@@ -67,7 +68,12 @@ export const ServiceFactory = (
 useContainer(Container);
 
 if (!Container.has('Database')) {
-  Container.set<IDatabase>('Database', new MongoDatabase(dbConfig.url, 'vibe'));
+  (async () => {
+    // Create In memory MongoDB server
+    const mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+    Container.set<IDatabase>('Database', new MongoDatabase(mongoUri, 'vibe'));
+  })();
 }
 
 export const main = () => {
