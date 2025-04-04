@@ -72,7 +72,6 @@ class SetupState:
         table.add_column("Description", justify="left")
         table.add_column("Status", justify="center")
 
-        # Get the steps from the state itself, assuming the state has the list of steps
         steps = self.get("steps", [])
 
         if not steps:
@@ -80,14 +79,13 @@ class SetupState:
             return
 
         for index, step in enumerate(steps, 1):
-            if self.get(step.name):
+            if self.get(step["name"]): #Access name as a dictionary key
                 status = "✅"
             else:
                 status = "❌"
-            table.add_row(str(index), step.name, step.description, status)
+            table.add_row(str(index), step["name"], step["description"], status) #Access name and description as dictionary keys
 
         console.print(table)
-
 
 # ------------------ Base Step Class ------------------
 
@@ -111,7 +109,7 @@ class PipelineStep:
 
 class WelcomeStep(PipelineStep):
     def __init__(self):
-        super().__init__("Welcome", "Select environment and setup type")
+        super().__init__("Welcome", "Select environment")
 
     def run(self, state):
         title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
@@ -121,11 +119,14 @@ class WelcomeStep(PipelineStep):
         console.print(panel)
         console.print("\n")
         environment = questionary.select("Choose environment:", choices=["Development", "Production"]).ask()
-        setup_type = questionary.select("What do you want to setup?", choices=["Backend", "Frontend", "Both"]).ask()
         state.update("environment", environment)
-        state.update("setup_type", setup_type)
+        if environment == "Development":
+            pass
+        elif environment == "Production":
+            console.print("[red]Production setup is not ready yet.[/red]")
+            sys.exit(1)
         state.update(self.name, True)
-
+        return environment
 
 class ToolchainCheckStep(PipelineStep):
     def __init__(self):
@@ -210,7 +211,7 @@ class EnvFileStep(PipelineStep):
 
 class PackageInstallStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("Packages", "Install backend dependencies")
+        super().__init__("Backend Packages", "Install backend dependencies")
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -243,7 +244,7 @@ class MongoDBBinaryStep(PipelineStep):
 
 class TestStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("Tests", "Run backend tests")
+        super().__init__("Backend Tests", "Run backend tests")
         self.backend_dir = backend_dir
 
     def run(self, state):
@@ -251,11 +252,19 @@ class TestStep(PipelineStep):
             result = subprocess.run(["pnpm", "run", "test:ci"], cwd=self.backend_dir, shell=(platform.system() == "Windows"))
             if result.returncode == 0:
                 console.print("[green]✅ All tests passed! Backend setup complete.")
-                console.print("[bold blue]👉 Run `pnpm run dev` inside the backend folder to start the server.[/bold blue]")
                 state.update(self.name, True)
             else:
                 console.print("[red]❌ Tests failed. Please fix and re-run the setup.")
                 sys.exit(1)
+
+class FrontendPackageInstallStep(PipelineStep):
+    def __init__(self, frontend_dir):
+        super().__init__("Frontend Packages", "Install frontend dependencies")
+        self.frontend_dir = frontend_dir
+
+    def run(self, state):
+        subprocess.run(["pnpm", "install"], cwd=self.frontend_dir, check=True, shell=(platform.system() == "Windows"))
+        state.update(self.name, True)
 
 # ------------------ Pipeline Manager ------------------
 
@@ -283,7 +292,6 @@ class SetupPipeline:
         console.print(table)
 
     def run(self):
-        # Store a JSON-serializable representation of steps in the state
         serializable_steps = [{"name": step.name, "description": step.description} for step in self.steps]
         self.state.update("steps", serializable_steps)
 
@@ -297,32 +305,40 @@ class SetupPipeline:
         clear_screen()
         self.print_progress_table("done")
         console.print("\n[bold green]🎉 Setup completed![/bold green]")
-
-
+        console.print("\n[bold blue]👉 Run `pnpm run dev` in the backend and frontend directories to start the servers.[/bold blue]")
 
 # ------------------ Main ------------------
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--summary":
-        SetupState().show_summary()
+        state = SetupState()
+        state.show_summary()
         return
 
     backend_dir = os.path.join(os.getcwd(), "backend")
+    frontend_dir = os.path.join(os.getcwd(), "frontend")
     state = SetupState()
 
-    steps = [
-        WelcomeStep(),
+    development_steps = [
         ToolchainCheckStep(),
         FirebaseLoginStep(),
         FirebaseEmulatorsStep(backend_dir),
         EnvFileStep(backend_dir),
         PackageInstallStep(backend_dir),
         MongoDBBinaryStep(backend_dir),
-        TestStep(backend_dir)
+        TestStep(backend_dir),
+        FrontendPackageInstallStep(frontend_dir)
     ]
 
-    pipeline = SetupPipeline(steps, state)
-    pipeline.run()
+    welcome_step = WelcomeStep()
+    environment = welcome_step.run(state)
+    if environment == "Development":
+        development_pipeline = SetupPipeline(development_steps, state)
+        development_pipeline.run()
+    elif environment == "Production":
+        console.print("[red]Production setup is not ready yet.[/red]")
+        sys.exit(1)
+    console.print("\n[bold cyan]Setup Summary[/bold cyan]")
 
 if __name__ == "__main__":
     main()
