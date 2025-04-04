@@ -138,8 +138,18 @@ class ToolchainCheckStep(PipelineStep):
             return shutil.which(command) is not None
 
         if not check_command_exists("node"):
-            console.print("[red]❌ Node.js is not installed.")
-            sys.exit(1)
+            console.print("[yellow]⚠ Node.js is not installed. Installing using fnm...[/yellow]")
+            try:
+                if platform.system() == "Windows":
+                    subprocess.run(["winget", "install", "Schniz.fnm"], check=True)
+                else:
+                    subprocess.run(["curl", "-fsSL", "https://fnm.vercel.app/install | bash"], check=True, shell=True)
+                subprocess.run(["fnm", "install", "22"], check=True)
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red]❌ Failed to install Node.js: {e}[/red]")
+                sys.exit(1)
+            console.print("[green]✅ Node.js installed successfully.[/green]")
+            
         if not check_command_exists("npm"):
             console.print("[red]❌ npm is not installed.")
             sys.exit(1)
