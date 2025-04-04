@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+# ViBe Setup Wizard - Modular Pipeline-Based Architecture
+
 import sys
 import subprocess
 import shutil
@@ -6,278 +7,234 @@ import platform
 import os
 import urllib.request
 import tempfile
-import re
+import json
+from pathlib import Path
+from typing import List, Dict, Optional
 
-# Ensure required Python packages
-def install_package(package):
+# Install third-party packages if missing
+for pkg in ["rich", "questionary"]:
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-    except subprocess.CalledProcessError:
-        print(f"❌ Failed to install {package}. Please install manually.")
-        sys.exit(1)
+        __import__(pkg)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
-try:
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    from rich.align import Align
-    from rich import box
-    from rich.markdown import Markdown
-except ImportError:
-    install_package("rich")
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    from rich.align import Align
-    from rich import box
-    from rich.markdown import Markdown
-
-try:
-    import questionary
-except ImportError:
-    install_package("questionary")
-    import questionary
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.align import Align
+from rich import box
+from rich.markdown import Markdown
+from rich.table import Table
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+import questionary
 
 console = Console()
 
-# ------------------ UI ------------------
+STATE_FILE = ".vibe_setup_state.json"
+FIREBASE_CLI = "firebase.cmd" if platform.system() == "Windows" else "firebase"
+NPM_CLI = "npm.cmd" if platform.system() == "Windows" else "npm"
 
-def show_welcome():
-    console.clear()
-    title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
-    console.print(Align.center(title))
+# ------------------ Pipeline State Manager ------------------
 
-    welcome_text = (
-        "[green]ViBe[/green] is an [bold]innovative educational platform[/bold].\n\n"
-        "👋 Use [bold]arrow keys[/bold] and [bold]Enter[/bold] to navigate options."
-    )
-    panel = Panel.fit(welcome_text, title="[bold cyan]Welcome[/bold cyan]", border_style="green", box=box.ROUNDED)
-    console.print("\n")
-    console.print(panel)
-    console.print("\n")
+class SetupState:
+    def __init__(self):
+        self.state = {}
+        self.load()
 
+    def load(self):
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, "r") as f:
+                self.state = json.load(f)
 
-def get_main_choice():
-    return questionary.select(
-        "Choose the setup mode:",
-        choices=["Development", "Production"]
-    ).ask()
+    def save(self):
+        with open(STATE_FILE, "w") as f:
+            json.dump(self.state, f, indent=2)
 
+    def update(self, key: str, value):
+        self.state[key] = value
+        self.save()
 
-def get_dev_choice():
-    return questionary.select(
-        "Choose the development setup:",
-        choices=["Backend", "Frontend", "Both"]
-    ).ask()
+    def get(self, key: str, default=None):
+        return self.state.get(key, default)
 
+    def show_summary(self):
+        console.print("\n[bold cyan]Setup Summary[/bold cyan]")
+        console.print_json(json.dumps(self.state, indent=2))
 
-def setup_message(mode, sub=None):
-    if mode == "Development":
-        console.print(f"\n:hammer_and_wrench: [bold green]Development Setup: {sub}[/bold green]")
-    else:
-        console.print(f"\n:rocket: [bold green]Production Setup Selected[/bold green]")
+# ------------------ Base Step Class ------------------
 
-    console.print("\n[bold magenta]⚙️  Setting up the environment...[/bold magenta]\n")
+class PipelineStep:
+    def __init__(self, name: str, description: str):
+        self.name = name
+        self.description = description
 
-# ------------------ TOOLCHAIN CHECK ------------------
+    def should_run(self, state: SetupState) -> bool:
+        return not state.get(self.name)
 
-def check_command_exists(command):
-    return shutil.which(command) is not None
+    def run(self, state: SetupState):
+        raise NotImplementedError("Each step must implement a run method")
 
+# ------------------ Step Implementations ------------------
 
-def install_nodejs():
-    system = platform.system()
-    console.print("[yellow]Installing Node.js...[/yellow]")
+class WelcomeStep(PipelineStep):
+    def __init__(self):
+        super().__init__("welcome", "Show welcome message and select environment/setup")
 
-    if system == "Windows":
-        url = "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi"
-        installer = os.path.join(tempfile.gettempdir(), "node-installer.msi")
-        urllib.request.urlretrieve(url, installer)
-        subprocess.run(["msiexec", "/i", installer, "/quiet", "/norestart"], check=True)
-    elif system == "Darwin":
-        if not check_command_exists("brew"):
-            console.print("[red]Install Homebrew to continue.[/red]")
+    def run(self, state):
+        console.clear()
+        title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
+        console.print(Align.center(title))
+        panel = Panel.fit("[green]Welcome to the ViBe backend setup process![/green]", title="[bold cyan]Welcome[/bold cyan]", border_style="green", box=box.ROUNDED)
+        console.print("\n")
+        console.print(panel)
+        console.print("\n")
+        environment = questionary.select("Choose environment:", choices=["Development", "Production"]).ask()
+        setup_type = questionary.select("What do you want to setup?", choices=["Backend", "Frontend", "Both"]).ask()
+        state.update("environment", environment)
+        state.update("setup_type", setup_type)
+        state.update(self.name, True)
+
+class ToolchainCheckStep(PipelineStep):
+    def __init__(self):
+        super().__init__("toolchain", "Verify Node.js, npm, and pnpm are installed")
+
+    def run(self, state):
+        console.clear()
+        def check_command_exists(command):
+            return shutil.which(command) is not None
+
+        if not check_command_exists("node"):
+            console.print("[red]❌ Node.js is not installed.")
             sys.exit(1)
-        subprocess.run(["brew", "install", "node"], check=True)
-    elif system == "Linux":
-        if check_command_exists("apt"):
-            subprocess.run(["sudo", "apt", "update"], check=True)
-            subprocess.run(["sudo", "apt", "install", "-y", "nodejs", "npm"], check=True)
-        else:
-            console.print("[red]Unsupported Linux distribution.[/red]")
+        if not check_command_exists("npm"):
+            console.print("[red]❌ npm is not installed.")
             sys.exit(1)
-    else:
-        console.print("[red]Unsupported OS.[/red]")
-        sys.exit(1)
+        if not check_command_exists("pnpm"):
+            console.print("[yellow]⚠ Installing pnpm...[/yellow]")
+            subprocess.run([NPM_CLI, "install", "-g", "pnpm"], check=True, shell=(platform.system() == "Windows"))
 
+        console.print(":white_check_mark: [green]Toolchain verified.[/green]")
+        state.update(self.name, True)
 
-def install_pnpm():
-    subprocess.run(["npm", "install", "-g", "pnpm"], check=True)
+class FirebaseLoginStep(PipelineStep):
+    def __init__(self):
+        super().__init__("firebase_login", "Ensure Firebase CLI is logged in")
 
+    def run(self, state):
+        console.clear()
+        result = subprocess.run([FIREBASE_CLI, "login:list"], capture_output=True, text=True, shell=(platform.system() == "Windows"))
+        if "No authorized accounts" in result.stdout:
+            subprocess.run([FIREBASE_CLI, "login"], check=True, shell=(platform.system() == "Windows"))
+        state.update(self.name, True)
 
-def ensure_node_tools():
-    console.rule("[bold blue]Checking Prerequisites[/bold blue]")
+class FirebaseEmulatorsStep(PipelineStep):
+    def __init__(self, backend_dir):
+        super().__init__("emulators", "Initialize Firebase emulators")
+        self.backend_dir = backend_dir
 
-    if not check_command_exists("node"):
-        console.print(":warning: [yellow]Node.js not found.[/yellow]")
-        install_nodejs()
-    else:
-        console.print(":white_check_mark: [green]Node.js is installed.[/green]")
+    def run(self, state):
+        console.clear()
+        console.print(Panel("[bold yellow]Please choose ONLY the following emulators when prompted:[/bold yellow]\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]", title="[bold cyan]Firebase Emulator Setup Instructions[/bold cyan]"))
 
-    if not check_command_exists("npm"):
-        console.print(":warning: [yellow]npm not found.[/yellow]")
-        sys.exit(1)
-    else:
-        console.print(":white_check_mark: [green]npm is installed.[/green]")
+        subprocess.run([FIREBASE_CLI, "init", "emulators"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
+        state.update(self.name, True)
 
-    if not check_command_exists("pnpm"):
-        console.print(":warning: [yellow]pnpm not found.[/yellow]")
-        install_pnpm()
-    else:
-        console.print(":white_check_mark: [green]pnpm is installed.[/green]")
+class EnvFileStep(PipelineStep):
+    def __init__(self, backend_dir):
+        super().__init__("env", "Create .env file and set MongoDB URI")
+        self.backend_dir = backend_dir
 
-# ------------------ MongoDB Memory Server Support ------------------
+    def run(self, state):
+        console.clear()
+        env_path = os.path.join(self.backend_dir, ".env")
+        if not os.path.exists(env_path):
+            uri = questionary.text("Paste your MongoDB URI:").ask()
+            with open(env_path, "w") as f:
+                f.write(f"DB_URL=\"{uri}\"\n")
+        state.update(self.name, True)
 
-def ensure_mongodb_binaries():
-    console.print("[cyan]Ensuring MongoDB binaries are downloaded for mongodb-memory-server...[/cyan]")
+class PackageInstallStep(PipelineStep):
+    def __init__(self, backend_dir):
+        super().__init__("packages", "Install backend dependencies")
+        self.backend_dir = backend_dir
 
-    script = """
-    import { MongoMemoryServer } from 'mongodb-memory-server';
+    def run(self, state):
+        console.clear()
+        subprocess.run(["pnpm", "install"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
+        state.update(self.name, True)
 
-    (async () => {
-      const mongod = await MongoMemoryServer.create();
-      await mongod.getUri();
-      await mongod.stop();
-    })();
-    """
+class TestStep(PipelineStep):
+    def __init__(self, backend_dir):
+        super().__init__("tests", "Run backend tests")
+        self.backend_dir = backend_dir
 
-    try:
-        subprocess.run(["node", "-e", script], check=True)
-        console.print(":white_check_mark: [green]MongoDB binaries downloaded and ready.[/green]")
-    except subprocess.CalledProcessError:
-        console.print(":x: [red]Failed to download MongoDB binaries. Please check your internet or proxy settings.[/red]")
-        sys.exit(1)
+    def run(self, state):
+        console.clear()
+        with console.status("Running backend tests..."):
+            result = subprocess.run(["pnpm", "run", "test:ci"], cwd=self.backend_dir, shell=(platform.system() == "Windows"))
+            if result.returncode == 0:
+                console.print("[green]✅ All tests passed! Backend setup complete.")
+                console.print("[bold blue]👉 Run `pnpm run dev` inside the backend folder to start the server.[/bold blue]")
+                state.update(self.name, True)
+            else:
+                console.print("[red]❌ Tests failed. Please fix and re-run the setup.")
+                sys.exit(1)
 
-# ------------------ Utility ------------------
+# ------------------ Pipeline Manager ------------------
 
-def add_or_update_env_variable(key, value, env_path=".env"):
-    lines = []
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            lines = f.read().splitlines()
+class SetupPipeline:
+    def __init__(self, steps: List[PipelineStep], state: SetupState):
+        self.steps = steps
+        self.state = state
 
-    existing = {line.split("=")[0]: line for line in lines if "=" in line}
-    existing[key] = f'{key}="{value}"'
+    def print_progress_table(self, current_step_name):
+        table = Table(title="ViBe Setup Progress", box=box.ROUNDED)
+        table.add_column("Step", justify="left")
+        table.add_column("Description", justify="left")
+        table.add_column("Status", justify="center")
 
-    with open(env_path, "w") as f:
-        for line in existing.values():
-            f.write(line + "\n")
+        for step in self.steps:
+            if self.state.get(step.name):
+                status = "✅"
+            elif step.name == current_step_name:
+                status = "🔄"
+            else:
+                status = "⏳"
+            table.add_row(step.name, step.description, status)
 
-    console.print(f":pencil: [blue]{key}[/blue] updated in {env_path}")
+        console.clear()
+        console.print(table)
 
-# ------------------ Backend Setup ------------------
-
-def prompt_for_db_uri_if_needed():
-    env_file = ".env"
-    uri = ""
-    if os.path.exists(env_file):
-        with open(env_file, "r") as f:
-            content = f.read()
-            match = re.search(r'^DB_URL=(.*)', content, re.MULTILINE)
-            if match:
-                uri = match.group(1).strip()
-    if not uri:
-        console.print(Panel.fit("🌐 DB_URL is not set. Let's help you set it up!", style="bold yellow"))
-        md = Markdown("""
-### How to Get Your MongoDB Atlas URI:
-1. Go to [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a free account and cluster.
-3. Choose "Connect", then "Connect Your Application".
-4. Copy the MongoDB URI string (e.g. `mongodb+srv://...`).
-5. Paste it below.
-""")
-        console.print(md)
-        uri = questionary.text("Paste your MongoDB URI").ask()
-        add_or_update_env_variable("DB_URL", uri)
-
-def validate_env_file(required_keys):
-    if not os.path.exists(".env"):
-        console.print(":x: [red].env not found for validation.[/red]")
-        return
-    with open(".env", "r") as f:
-        lines = f.read().splitlines()
-    keys_present = {line.split("=")[0] for line in lines if "=" in line}
-    missing = [key for key in required_keys if key not in keys_present]
-    if missing:
-        console.print(f":x: [red]Missing keys in .env: {', '.join(missing)}[/red]")
-    else:
-        console.print(":white_check_mark: [green].env has all required keys.[/green]")
-
-def rename_backend_files(is_dev=True):
-    env_example = ".env.example"
-    env_file = ".env"
-    sentry_example = ".sentryclirc.example"
-    sentry_file = ".sentryclirc"
-
-    if os.path.exists(env_example):
-        os.rename(env_example, env_file)
-        console.print(":white_check_mark: [green].env.example → .env[/green]")
-
-    if not is_dev and os.path.exists(sentry_example):
-        os.rename(sentry_example, sentry_file)
-        console.print(":white_check_mark: [green].sentryclirc.example → .sentryclirc[/green]")
-    elif is_dev:
-        console.print(":information_source: [blue].sentryclirc not needed in development.[/blue]")
-
-    validate_env_file(["DB_URL"])
-
-def run_backend_setup():
-    backend_dir = os.path.join(os.getcwd(), "backend")
-    os.chdir(backend_dir)
-
-    rename_backend_files(is_dev=True)
-    prompt_for_db_uri_if_needed()
-
-    console.print("[cyan]Installing packages with pnpm...[/cyan]")
-    subprocess.run(["pnpm", "install"])
-
-    run_tests = questionary.confirm("Do you want to run tests?").ask()
-    if run_tests:
-        ensure_mongodb_binaries()
-    tests_passed = False
-
-    if run_tests:
-        console.print("[bold]Running tests...[/bold]")
-        result = subprocess.run(["pnpm", "run", "test:ci"])
-        if result.returncode == 0:
-            console.print(":white_check_mark: [green]All tests passed![/green]")
-            tests_passed = True
-        else:
-            console.print(":x: [red]Tests failed. Please fix the issues before starting the server.[/red]")
-    else:
-        tests_passed = True
-
-    if tests_passed:
-        if questionary.confirm("Do you want to start the backend server now?").ask():
-            subprocess.run(["pnpm", "run", "dev"])
+    def run(self):
+        for step in self.steps:
+            self.print_progress_table(step.name)
+            if step.should_run(self.state):
+                step.run(self.state)
+        self.print_progress_table("done")
+        console.print("\n[bold green]🎉 Setup completed![/bold green]")
 
 # ------------------ Main ------------------
 
 def main():
-    show_welcome()
-    ensure_node_tools()
-    mode = get_main_choice()
+    if len(sys.argv) > 1 and sys.argv[1] == "--summary":
+        SetupState().show_summary()
+        return
 
-    if mode == "Development":
-        sub = get_dev_choice()
-        setup_message(mode, sub)
-        if sub in ["Backend", "Both"]:
-            run_backend_setup()
-        else:
-            console.print("[yellow]Frontend setup is not implemented yet.[/yellow]")
-    else:
-        setup_message(mode)
-        console.print(Panel.fit("[red]⚠ Production setup is not yet implemented.[/red]\nComing soon with a full CI/CD pipeline.", style="bold red"))
+    backend_dir = os.path.join(os.getcwd(), "backend")
+    state = SetupState()
+
+    steps = [
+        WelcomeStep(),
+        ToolchainCheckStep(),
+        FirebaseLoginStep(),
+        FirebaseEmulatorsStep(backend_dir),
+        EnvFileStep(backend_dir),
+        PackageInstallStep(backend_dir),
+        TestStep(backend_dir)
+    ]
+
+    pipeline = SetupPipeline(steps, state)
+    pipeline.run()
 
 if __name__ == "__main__":
     main()
