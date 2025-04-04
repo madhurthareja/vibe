@@ -210,7 +210,7 @@ def run_backend_setup():
 
     if run_tests:
         console.print("[bold]Running tests...[/bold]")
-        result = subprocess.run(["pnpm", "run", "test"])
+        result = subprocess.run(["pnpm", "run", "test:ci"])
         if result.returncode == 0:
             console.print(":white_check_mark: [green]All tests passed![/green]")
             tests_passed = True
