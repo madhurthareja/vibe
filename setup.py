@@ -143,7 +143,7 @@ class ToolchainCheckStep(PipelineStep):
                 if platform.system() == "Windows":
                     subprocess.run(["winget", "install", "Schniz.fnm"], check=True)
                 else:
-                    subprocess.run(["curl", "-fsSL", "https://fnm.vercel.app/install | bash"], check=True, shell=True)
+                    subprocess.run(["curl", "-o-", "https://fnm.vercel.app/install", "|", "bash"], check=True, shell=True)
                 subprocess.run(["fnm", "install", "22"], check=True)
             except subprocess.CalledProcessError as e:
                 console.print(f"[red]❌ Failed to install Node.js: {e}[/red]")
