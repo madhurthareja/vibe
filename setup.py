@@ -1,5 +1,3 @@
-# ViBe Setup Wizard - Modular Pipeline-Based Architecture
-
 import sys
 import subprocess
 import shutil
@@ -59,20 +57,51 @@ class SetupState:
 
     def show_summary(self):
         console.print("\n[bold cyan]Setup Summary[/bold cyan]")
-        console.print_json(json.dumps(self.state, indent=2))
+        self.print_final_progress_table()
+
+    def print_final_progress_table(self):
+        table = Table(title="ViBe Setup Progress", box=box.ROUNDED)
+        table.add_column("Step", justify="left")
+        table.add_column("Description", justify="left")
+        table.add_column("Status", justify="center")
+
+        steps = [
+            WelcomeStep(),
+            ToolchainCheckStep(),
+            FirebaseLoginStep(),
+            FirebaseEmulatorsStep(os.path.join(os.getcwd(), "backend")),
+            EnvFileStep(os.path.join(os.getcwd(), "backend")),
+            PackageInstallStep(os.path.join(os.getcwd(), "backend")),
+            TestStep(os.path.join(os.getcwd(), "backend"))
+        ]
+
+        for step in steps:
+            if self.get(step.name):
+                status = "✅"
+            else:
+                status = "❌"
+            table.add_row(step.name, step.description, status)
+
+        console.print(table)
+
 
 # ------------------ Base Step Class ------------------
 
 class PipelineStep:
-    def __init__(self, name: str, description: str):
+    def __init__(self, name: str, description: str, instructions: Optional[str] = None):
         self.name = name
         self.description = description
+        self.instructions = instructions
 
     def should_run(self, state: SetupState) -> bool:
         return not state.get(self.name)
 
     def run(self, state: SetupState):
         raise NotImplementedError("Each step must implement a run method")
+
+    def display_instructions(self):
+        if self.instructions:
+            console.print(Panel(self.instructions, title=f"[bold cyan]{self.name} - Instructions[/bold cyan]"))
 
 # ------------------ Step Implementations ------------------
 
@@ -84,7 +113,7 @@ class WelcomeStep(PipelineStep):
         console.clear()
         title = Text("🚀 ViBe Setup Wizard 🚀", style="bold white on blue", justify="center")
         console.print(Align.center(title))
-        panel = Panel.fit("[green]Welcome to the ViBe backend setup process![/green]", title="[bold cyan]Welcome[/bold cyan]", border_style="green", box=box.ROUNDED)
+        panel = Panel("[green]Welcome to the ViBe backend setup process![/green]", title="[bold cyan]Welcome[/bold cyan]", border_style="green", box=box.ROUNDED)
         console.print("\n")
         console.print(panel)
         console.print("\n")
@@ -129,23 +158,37 @@ class FirebaseLoginStep(PipelineStep):
 
 class FirebaseEmulatorsStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("emulators", "Initialize Firebase emulators")
+        super().__init__("emulators", "Initialize Firebase emulators",
+                         instructions="Please choose ONLY the following emulators when prompted:\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]")
         self.backend_dir = backend_dir
 
     def run(self, state):
         console.clear()
-        console.print(Panel("[bold yellow]Please choose ONLY the following emulators when prompted:[/bold yellow]\n\n✔ Authentication Emulator\n✔ Functions Emulator\n✔ Emulator UI [optional but recommended]", title="[bold cyan]Firebase Emulator Setup Instructions[/bold cyan]"))
-
+        self.display_instructions()
         subprocess.run([FIREBASE_CLI, "init", "emulators"], cwd=self.backend_dir, check=True, shell=(platform.system() == "Windows"))
         state.update(self.name, True)
 
 class EnvFileStep(PipelineStep):
     def __init__(self, backend_dir):
-        super().__init__("env", "Create .env file and set MongoDB URI")
+        super().__init__("env", "Create .env file and set MongoDB URI",
+                         instructions="""
+                        [bold]MongoDB URI Instructions:[/bold]
+
+                        1.  Go to [link=https://www.mongodb.com/atlas/database]MongoDB Atlas[/link] and sign up or log in.
+                        2.  Create a new project and cluster.
+                        3.  Navigate to the 'Database Access' section in your project.
+                        4.  Create a new database user with appropriate permissions.
+                        5.  Go to the 'Clusters' section and click 'Connect' on your cluster.
+                        6.  Select 'Connect your application'.
+                        7.  Copy the connection string.
+                        8.  [bold red]Replace '<password>' in the copied string with the actual password[/bold red] you created for the database user.
+                        9.  Paste the modified connection string below.
+                        """)
         self.backend_dir = backend_dir
 
     def run(self, state):
         console.clear()
+        self.display_instructions()
         env_path = os.path.join(self.backend_dir, ".env")
         if not os.path.exists(env_path):
             uri = questionary.text("Paste your MongoDB URI:").ask()
@@ -209,6 +252,9 @@ class SetupPipeline:
         for step in self.steps:
             self.print_progress_table(step.name)
             if step.should_run(self.state):
+                if step.instructions:
+                    step.display_instructions()
+                self.print_progress_table(step.name) #print again after instructions
                 step.run(self.state)
         self.print_progress_table("done")
         console.print("\n[bold green]🎉 Setup completed![/bold green]")
