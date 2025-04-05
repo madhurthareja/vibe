@@ -231,7 +231,7 @@ class MongoDBBinaryStep(PipelineStep):
 
     def run(self, state):
         console.print("[cyan]Ensuring MongoDB binaries are downloaded for mongodb-memory-server...[/cyan]")
-        script = """
+        script = textwrap.dedent("""
         import { MongoMemoryServer } from 'mongodb-memory-server';
 
         (async () => {
