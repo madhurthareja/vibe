@@ -4,8 +4,6 @@ title: Installation
 
 This guide will help you set up ViBe on your local machine for development.
 
-> 💡 **Tip:** Want to contribute? Head over to the [Contributing Guide](../development/contributing.md) after you're set up!
-
 ---
 
 ## 🧰 Requirements
