@@ -8,6 +8,9 @@ on:
       - 'backend/**' # Only trigger when files in backend folder are changed
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint Backend
