@@ -1,4 +1,4 @@
-Defined in: [classes/validators/SectionValidators.ts:188](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/SectionValidators.ts#L188)
+Defined in: [classes/validators/SectionValidators.ts:188](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/SectionValidators.ts#L188)
 
 Route parameters for moving a section within a module.
 
@@ -18,7 +18,7 @@ Route parameters for moving a section within a module.
 
 > **moduleId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:203](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/SectionValidators.ts#L203)
+Defined in: [classes/validators/SectionValidators.ts:203](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/SectionValidators.ts#L203)
 
 Module ID within the version.
 
@@ -28,7 +28,7 @@ Module ID within the version.
 
 > **sectionId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:211](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/SectionValidators.ts#L211)
+Defined in: [classes/validators/SectionValidators.ts:211](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/SectionValidators.ts#L211)
 
 Section ID that needs to be moved.
 
@@ -38,6 +38,6 @@ Section ID that needs to be moved.
 
 > **versionId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:195](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/SectionValidators.ts#L195)
+Defined in: [classes/validators/SectionValidators.ts:195](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/SectionValidators.ts#L195)
 
 Version ID of the course.

@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ModuleValidators.ts:163](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L163)
+Defined in: [classes/validators/ModuleValidators.ts:163](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L163)
 
 Route parameters for creating a module.
 
@@ -18,6 +18,6 @@ Route parameters for creating a module.
 
 > **versionId**: `string`
 
-Defined in: [classes/validators/ModuleValidators.ts:169](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L169)
+Defined in: [classes/validators/ModuleValidators.ts:169](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L169)
 
 ID of the course version to which the module will be added.

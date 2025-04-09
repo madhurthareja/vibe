@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseVersionValidators.ts:38](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L38)
+Defined in: [classes/validators/CourseVersionValidators.ts:38](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L38)
 
 Route parameters for creating a course version under a specific course.
 
@@ -18,6 +18,6 @@ Route parameters for creating a course version under a specific course.
 
 > **id**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:44](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L44)
+Defined in: [classes/validators/CourseVersionValidators.ts:44](https://github.com/continuousactivelearning/vibe/blob/dbf557f2b5c1ec47c296f0289b3a6f789bb5efa2/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L44)
 
 ID of the course to attach the new version to.

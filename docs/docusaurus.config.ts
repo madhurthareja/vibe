@@ -6,7 +6,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "ViBe",
-  tagline: "A ViBe for everyone",
+  tagline: "Reimagining Learning, One Question at a Time",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
