@@ -9,11 +9,15 @@
 		"lint-staged": "^15.5.0"
 	},
 	"scripts": {
-		"prepare": "husky"
+		"prepare": "husky",
+		"postinstall": "pnpx ts-node scripts/preload-mongo-binary.ts"
 	},
 	"lint-staged": {
 		"backend/**/*.{js,jsx,ts,tsx}": [
 			"pnpm --filter backend lint"
 		]
+	},
+	"dependencies": {
+		"mongodb-memory-server-core": "^10.1.4"
 	}
 }

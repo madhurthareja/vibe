@@ -1,5 +1,5 @@
 {
-  "name": "vibe-backend",
+  "name": "backend",
   "version": "3.0.0",
   "description": "This is ViBe backend.",
   "main": "index.js",
