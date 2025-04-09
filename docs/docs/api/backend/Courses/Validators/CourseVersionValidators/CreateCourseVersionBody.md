@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseVersionValidators.ts:10](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L10)
+Defined in: [classes/validators/CourseVersionValidators.ts:10](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L10)
 
 DTO for creating a new course version.
 
@@ -22,7 +22,7 @@ DTO for creating a new course version.
 
 > **courseId**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:16](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L16)
+Defined in: [classes/validators/CourseVersionValidators.ts:16](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L16)
 
 ID of the course this version belongs to.
 This is auto-populated and should remain empty in the request body.
@@ -37,7 +37,7 @@ This is auto-populated and should remain empty in the request body.
 
 > **description**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:30](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L30)
+Defined in: [classes/validators/CourseVersionValidators.ts:30](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L30)
 
 A brief description of the course version.
 
@@ -51,7 +51,7 @@ A brief description of the course version.
 
 > **version**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:23](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L23)
+Defined in: [classes/validators/CourseVersionValidators.ts:23](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L23)
 
 The version label or identifier (e.g., "v1.0", "Fall 2025").
 

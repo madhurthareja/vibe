@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ModuleValidators.ts:198](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L198)
+Defined in: [classes/validators/ModuleValidators.ts:198](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L198)
 
 Route parameters for moving a module.
 
@@ -18,7 +18,7 @@ Route parameters for moving a module.
 
 > **moduleId**: `string`
 
-Defined in: [classes/validators/ModuleValidators.ts:211](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L211)
+Defined in: [classes/validators/ModuleValidators.ts:211](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L211)
 
 ID of the module to move.
 
@@ -28,6 +28,6 @@ ID of the module to move.
 
 > **versionId**: `string`
 
-Defined in: [classes/validators/ModuleValidators.ts:204](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L204)
+Defined in: [classes/validators/ModuleValidators.ts:204](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ModuleValidators.ts#L204)
 
 ID of the course version.

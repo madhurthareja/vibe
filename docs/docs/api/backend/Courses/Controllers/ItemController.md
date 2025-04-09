@@ -1,4 +1,4 @@
-Defined in: [controllers/ItemController.ts:41](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L41)
+Defined in: [controllers/ItemController.ts:41](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L41)
 
 Controller for managing items within course modules and sections.
 Handles operations such as creation, retrieval, update, and reordering.
@@ -9,7 +9,7 @@ Handles operations such as creation, retrieval, update, and reordering.
 
 > **new ItemController**(`courseRepo`): `ItemController`
 
-Defined in: [controllers/ItemController.ts:42](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L42)
+Defined in: [controllers/ItemController.ts:42](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L42)
 
 #### Parameters
 
@@ -29,7 +29,7 @@ Defined in: [controllers/ItemController.ts:42](https://github.com/continuousacti
 
 > **create**(`params`, `body`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:64](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L64)
+Defined in: [controllers/ItemController.ts:64](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L64)
 
 Create a new item under a specific section of a module in a course version.
 
@@ -63,7 +63,7 @@ HTTPError(500) on internal errors.
 
 > **move**(`params`, `body`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:269](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L269)
+Defined in: [controllers/ItemController.ts:269](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L269)
 
 Move an item to a new position within a section by recalculating its order.
 
@@ -101,7 +101,7 @@ HTTPError(500) on internal errors.
 
 > **readAll**(`params`): `Promise`\<\{ `itemsGroup`: [`ItemsGroup`](../Transformers/ItemsGroup.md); \}\>
 
-Defined in: [controllers/ItemController.ts:134](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L134)
+Defined in: [controllers/ItemController.ts:134](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L134)
 
 Retrieve all items from a section of a module in a course version.
 
@@ -129,7 +129,7 @@ HTTPError(500) on internal errors.
 
 > **update**(`params`, `body`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:177](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/controllers/ItemController.ts#L177)
+Defined in: [controllers/ItemController.ts:177](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/ItemController.ts#L177)
 
 Update an existing item in a section of a module in a course version.
 

@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ItemValidators.ts:30](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ItemValidators.ts#L30)
+Defined in: [classes/validators/ItemValidators.ts:30](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ItemValidators.ts#L30)
 
 Video item details for embedded video learning content.
 
@@ -22,7 +22,7 @@ Video item details for embedded video learning content.
 
 > **endTime**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:55](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ItemValidators.ts#L55)
+Defined in: [classes/validators/ItemValidators.ts:55](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ItemValidators.ts#L55)
 
 End time of the clip in HH:MM:SS format.
 
@@ -36,7 +36,7 @@ End time of the clip in HH:MM:SS format.
 
 > **points**: `number`
 
-Defined in: [classes/validators/ItemValidators.ts:62](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ItemValidators.ts#L62)
+Defined in: [classes/validators/ItemValidators.ts:62](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ItemValidators.ts#L62)
 
 Points assigned to the video interaction.
 
@@ -50,7 +50,7 @@ Points assigned to the video interaction.
 
 > **startTime**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:46](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ItemValidators.ts#L46)
+Defined in: [classes/validators/ItemValidators.ts:46](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ItemValidators.ts#L46)
 
 Start time of the clip in HH:MM:SS format.
 
@@ -64,7 +64,7 @@ Start time of the clip in HH:MM:SS format.
 
 > **URL**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:37](https://github.com/continuousactivelearning/vibe/blob/93348bcba2a36924136fc58524ad1ed4cb960f87/backend/src/modules/courses/classes/validators/ItemValidators.ts#L37)
+Defined in: [classes/validators/ItemValidators.ts:37](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/ItemValidators.ts#L37)
 
 Public video URL (e.g., YouTube or Vimeo link).
 

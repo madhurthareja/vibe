@@ -22,6 +22,7 @@ const config: Config = {
   },
 
 
+
   plugins: [
     [
       "docusaurus-plugin-typedoc",
@@ -93,7 +94,6 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
-
   themeConfig: {
     // Replace with your project's social card
     image: "img/docusaurus-social-card.jpg",
@@ -116,6 +116,13 @@ const config: Config = {
           position: "right",
         },
       ],
+    },
+    algolia: {
+      appId: 'XXGSK16Q2E',
+      apiKey: '185a09fe6fdd903609d79c14183bbe32',
+      insights: true,
+      indexName: 'continuousactivelearningio',
+      contextualSearch: true,
     },
     footer: {
       style: "dark",

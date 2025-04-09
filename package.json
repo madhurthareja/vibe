@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"prepare": "husky",
-		"postinstall": "pnpx ts-node scripts/preload-mongo-binary.ts"
+		"binaries": "pnpx ts-node scripts/preload-mongo-binary.ts"
 	},
 	"lint-staged": {
 		"backend/**/*.{js,jsx,ts,tsx}": [
