@@ -13,7 +13,7 @@ import {ID} from 'shared/types';
 /**
  * Payload for creating a section inside a module.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class CreateSectionBody implements ISection {
   /**
@@ -85,7 +85,7 @@ class CreateSectionBody implements ISection {
  * Payload for updating a section.
  * Allows partial updates to name or description.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class UpdateSectionBody implements Partial<ISection> {
   /**
@@ -117,7 +117,7 @@ class UpdateSectionBody implements Partial<ISection> {
 /**
  * Payload for reordering a section within a module.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class MoveSectionBody {
   /**
@@ -160,7 +160,7 @@ class MoveSectionBody {
 /**
  * Route parameters for creating a section in a module.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class CreateSectionParams {
   /**
@@ -183,7 +183,7 @@ class CreateSectionParams {
 /**
  * Route parameters for moving a section within a module.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class MoveSectionParams {
   /**
@@ -214,7 +214,7 @@ class MoveSectionParams {
 /**
  * Route parameters for updating a section.
  *
- * @category Courses/Validators/ModuleValidators
+ * @category Courses/Validators/SectionValidators
  */
 class UpdateSectionParams {
   /**
