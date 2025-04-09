@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseValidators.ts:18](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseValidators.ts#L18)
+Defined in: [classes/validators/CourseValidators.ts:18](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/CourseValidators.ts#L18)
 
 DTO for creating a course.
 
@@ -22,7 +22,7 @@ DTO for creating a course.
 
 > **description**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:36](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseValidators.ts#L36)
+Defined in: [classes/validators/CourseValidators.ts:36](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/CourseValidators.ts#L36)
 
 A brief description of the course.
 Max length is 1000 characters.
@@ -37,7 +37,7 @@ Max length is 1000 characters.
 
 > **name**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:27](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/classes/validators/CourseValidators.ts#L27)
+Defined in: [classes/validators/CourseValidators.ts:27](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/classes/validators/CourseValidators.ts#L27)
 
 The name of the course.
 Must be between 3 and 255 characters.

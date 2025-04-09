@@ -1,4 +1,4 @@
-Defined in: [controllers/CourseVersionController.ts:34](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/CourseVersionController.ts#L34)
+Defined in: [controllers/CourseVersionController.ts:34](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/controllers/CourseVersionController.ts#L34)
 
 Controller for handling course version operations like creation and retrieval.
 All routes are prefixed with `/courses`.
@@ -9,7 +9,7 @@ All routes are prefixed with `/courses`.
 
 > **new CourseVersionController**(`courseRepo`): `CourseVersionController`
 
-Defined in: [controllers/CourseVersionController.ts:35](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/CourseVersionController.ts#L35)
+Defined in: [controllers/CourseVersionController.ts:35](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/controllers/CourseVersionController.ts#L35)
 
 #### Parameters
 
@@ -29,7 +29,7 @@ Defined in: [controllers/CourseVersionController.ts:35](https://github.com/conti
 
 > **create**(`params`, `body`): `Promise`\<\{ `course`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/CourseVersionController.ts:53](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/CourseVersionController.ts#L53)
+Defined in: [controllers/CourseVersionController.ts:53](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/controllers/CourseVersionController.ts#L53)
 
 Create a new version for a specific course.
 
@@ -67,7 +67,7 @@ HttpError(500) on any other internal error
 
 > **read**(`params`): `Promise`\<`Record`\<`string`, `any`\>\>
 
-Defined in: [controllers/CourseVersionController.ts:100](https://github.com/continuousactivelearning/vibe/blob/ba7fd29459f44e164192b6f3b1178ced23288f0a/backend/src/modules/courses/controllers/CourseVersionController.ts#L100)
+Defined in: [controllers/CourseVersionController.ts:100](https://github.com/continuousactivelearning/vibe/blob/bbe96e7b9c72b9bbcc5896c45a0f74ad711a9075/backend/src/modules/courses/controllers/CourseVersionController.ts#L100)
 
 Retrieve a course version by its ID.
 

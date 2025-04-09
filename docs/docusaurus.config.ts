@@ -100,8 +100,8 @@ const config: Config = {
     navbar: {
       title: "ViBe",
       logo: {
-        alt: "ViBe Logo",
-        src: "img/logo.svg",
+        alt: "Vikram Betaal(ViBe) Logo",
+        src: "img/logo.png",
       },
       items: [
         {
