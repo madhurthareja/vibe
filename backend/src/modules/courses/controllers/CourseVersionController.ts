@@ -78,8 +78,12 @@ export class CourseVersionController {
         version: instanceToPlain(version),
       };
     } catch (error) {
-      // Intentionally left empty to preserve original behavior.
-      // TODO: Add specific error types and handling as needed.
+      if (error instanceof ItemNotFoundError) {
+        throw new HttpError(404, error.message);
+      }
+      if (error instanceof ReadError) {
+        throw new HttpError(500, error.message);
+      }
       throw new HttpError(500, error.message);
     }
   }
