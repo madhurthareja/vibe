@@ -37,7 +37,7 @@ class CreateCourseVersionBody implements Partial<ICourseVersion> {
  */
 class CreateCourseVersionParams {
   /**
-   * MongoDB ObjectId of the course to attach the new version to.
+   * ID of the course to attach the new version to.
    */
   @IsMongoId()
   @IsString()
@@ -51,7 +51,7 @@ class CreateCourseVersionParams {
  */
 class ReadCourseVersionParams {
   /**
-   * MongoDB ObjectId of the course version to retrieve.
+   * ID of the course version to retrieve.
    */
   @IsMongoId()
   @IsString()
