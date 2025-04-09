@@ -1,4 +1,9 @@
 {
+	"name": "vibe",
+	"version": "0.1.0",
+	"private": true,
+	"license": "MIT",
+	"author": "adityabmv",
 	"devDependencies": {
 		"husky": "^9.1.7",
 		"lint-staged": "^15.5.0"
@@ -7,9 +12,8 @@
 		"prepare": "husky"
 	},
 	"lint-staged": {
-    "backend/**/*.{js,jsx,ts,tsx}": [
-		"cmd /c cd backend && pnpm run lint"
-    ]
-  }
-
+		"backend/**/*.{js,jsx,ts,tsx}": [
+			"pnpm --filter backend lint"
+		]
+	}
 }
