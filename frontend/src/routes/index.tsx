@@ -7,14 +7,14 @@ import { JSX } from "react";
 import React from "react";
 
 // ✅ Role-Based Route Guard
-function ProtectedRoute({ role, children }: { role: "teacher" | "student"; children: JSX.Element }) {
-    const user = useSelector((state: RootState) => state.auth.user);
+// function ProtectedRoute({ role, children }: { role: "teacher" | "student"; children: JSX.Element }) {
+//     const user = useSelector((state: RootState) => state.auth.user);
 
-    if (!user) return <Navigate to="/auth" replace />;
-    if (user.role !== role) return <Navigate to="/auth" replace />;
+//     if (!user) return <Navigate to="/auth" replace />;
+//     if (user.role !== role) return <Navigate to="/auth" replace />;
 
-    return children;
-}
+//     return children;
+// }
 
 export default function AppRoutes() {
     return (
@@ -23,7 +23,7 @@ export default function AppRoutes() {
                 <Route path="/auth" element={<AuthPage />} />
 
                 {/* ✅ Register Teacher Routes */}
-                <Route path={teacherRoutes.path} element={teacherRoutes.element && React.isValidElement(teacherRoutes.element) ? <ProtectedRoute role="teacher">{teacherRoutes.element}</ProtectedRoute> : <Navigate to="/auth" />}>
+                <Route path={teacherRoutes.path} element={teacherRoutes.element}>
                     {teacherRoutes.children?.map((child, idx) => (
                         <Route
                             key={idx}
