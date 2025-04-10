@@ -6,6 +6,7 @@ let webcontainerInstance: WebContainer;
 
 const WebContainerCodeEditor: React.FC = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
         const initializeWebContainer = async () => {
@@ -17,10 +18,43 @@ const WebContainerCodeEditor: React.FC = () => {
             const packageJSON = await webcontainerInstance.fs.readFile('package.json', 'utf-8');
             console.log(packageJSON);
 
+            // Install dependencies using pnpm
+            const installProcess = await webcontainerInstance.spawn('pnpm', ['install']);
+            installProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    console.log(data);
+                }
+            }));
+            await installProcess.exit;
+            console.log('Dependencies installed using pnpm');
+
             // Set the textarea value to the contents of files['index.js']
             if (textareaRef.current) {
                 textareaRef.current.value = files['index.js'].file.contents;
             }
+
+            // Start the development server
+            startDevServer();
+        };
+
+        const startDevServer = async () => {
+            // Run `npm run start` to start the Express app
+            const startProcess = await webcontainerInstance.spawn('npm', ['run', 'start']);
+            startProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    console.log(data);
+                }
+            }));
+
+            // Wait for `server-ready` event
+            webcontainerInstance.on('server-ready', (port, url) => {
+                console.log(`Server ready at ${url}`);
+                if (iframeRef.current) {
+                    console.log('Setting iframe src to:', url);
+                    // Set the iframe src to the server URL
+                    iframeRef.current.src = url;
+                }
+            });
         };
 
         initializeWebContainer();
@@ -37,7 +71,12 @@ const WebContainerCodeEditor: React.FC = () => {
                 </textarea>
             </div>
             <div className="preview">
-                <iframe className="h-full w-full rounded-lg" src="loading.html" title="Preview"></iframe>
+                <iframe
+                    ref={iframeRef}
+                    className="h-full w-full rounded-lg"
+                    src="loading.html"
+                    title="Preview"
+                ></iframe>
             </div>
         </div>
     );
