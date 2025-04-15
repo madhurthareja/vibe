@@ -23,7 +23,7 @@ import {Inject, Service} from 'typedi';
 import {AuthenticatedRequest, IAuthService} from '../interfaces/IAuthService';
 import {instanceToPlain} from 'class-transformer';
 import {ChangePasswordError} from '../services/FirebaseAuthService';
-import {DTOSignUp, DTOChangePassword} from '../dtos/index';
+import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 
 @JsonController('/auth')
 @Service()
@@ -45,12 +45,12 @@ export class AuthController {
   /**
    * Handles user signup requests.
    *
-   * @param payload - User signup details validated via DTOSignUp.
+   * @param body - User signup details validated via DTOSignUp.
    * @returns Plain object representation of the newly created user.
    */
   @Post('/signup')
-  async signup(@Body({validate: true}) payload: DTOSignUp) {
-    const user = await this.authService.signup(payload);
+  async signup(@Body() body: SignUpBody) {
+    const user = await this.authService.signup(body);
     return instanceToPlain(user);
   }
 
@@ -59,7 +59,7 @@ export class AuthController {
    *
    * Authorized for roles: admin, teacher, student.
    *
-   * @param payload - Details required to change user password.
+   * @param body - Details required to change user password.
    * @param request - Authenticated request containing the user.
    * @returns Confirmation message upon successful password change.
    * @throws `HttpError` - On business logic errors or unexpected server errors.
@@ -67,14 +67,11 @@ export class AuthController {
   @Authorized(['admin', 'teacher', 'student'])
   @Patch('/change-password')
   async changePassword(
-    @Body() payload: DTOChangePassword,
+    @Body() body: ChangePasswordBody,
     @Req() request: AuthenticatedRequest,
   ) {
     try {
-      const result = await this.authService.changePassword(
-        payload,
-        request.user,
-      );
+      const result = await this.authService.changePassword(body, request.user);
       return {success: true, message: result.message};
     } catch (error) {
       if (error instanceof ChangePasswordError) {

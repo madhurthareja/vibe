@@ -12,46 +12,10 @@
 import 'reflect-metadata';
 import {Request} from 'express';
 import {IUser} from 'shared/interfaces/IUser';
-
-/**
- * Payload for the sign-up process.
- */
-export interface SignUpPayload {
-  /**
-   * The email of the user.
-   */
-  email: string;
-
-  /**
-   * The first name of the user.
-   */
-  firstName: string;
-
-  /**
-   * The last name of the user.
-   */
-  lastName: string;
-
-  /**
-   * The password of the user.
-   */
-  password: string;
-}
-
-/**
- * Payload for changing the user's password.
- */
-export interface ChangePasswordPayload {
-  /**
-   * The new password to be set.
-   */
-  newPassword: string;
-
-  /**
-   * Confirmation of the new password.
-   */
-  newPasswordConfirm: string;
-}
+import {
+  ChangePasswordBody,
+  SignUpBody,
+} from '../classes/validators/AuthValidators';
 
 /**
  * Interface representing the authentication service.
@@ -60,10 +24,10 @@ export interface IAuthService {
   /**
    * Signs up a new user.
    *
-   * @param payload - The payload containing the sign-up information.
+   * @param body - The payload containing the sign-up information.
    * @returns A promise that resolves to the created user.
    */
-  signup(payload: SignUpPayload): Promise<IUser>;
+  signup(body: SignUpBody): Promise<IUser>;
 
   /**
    * Verifies a given token.
@@ -76,12 +40,12 @@ export interface IAuthService {
   /**
    * Changes the password of a user.
    *
-   * @param payload - The payload containing the new password information.
+   * @param body - The payload containing the new password information.
    * @param requestUser - The user requesting the password change.
    * @returns A promise that resolves to a confirmation string.
    */
   changePassword(
-    payload: ChangePasswordPayload,
+    body: ChangePasswordBody,
     requestUser: IUser,
   ): Promise<{success: boolean; message: string}>;
 }

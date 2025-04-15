@@ -11,17 +11,15 @@
 
 import 'reflect-metadata';
 import {Auth} from 'firebase-admin/lib/auth/auth';
-import {
-  ChangePasswordPayload,
-  IAuthService,
-  SignUpPayload,
-} from '../interfaces/IAuthService';
+
 import admin from 'firebase-admin';
 import {UserRecord} from 'firebase-admin/lib/auth/user-record';
 import {applicationDefault} from 'firebase-admin/app';
 import {Inject, Service} from 'typedi';
 import {IUser} from 'shared/interfaces/IUser';
 import {IUserRepository} from 'shared/database';
+import {IAuthService} from '../interfaces/IAuthService';
+import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 
 export class ChangePasswordError extends Error {
   constructor(message: string) {
@@ -60,14 +58,14 @@ export class FirebaseAuthService implements IAuthService {
     }
   }
 
-  async signup(payload: SignUpPayload): Promise<IUser> {
+  async signup(body: SignUpBody): Promise<IUser> {
     let userRecord: UserRecord;
     try {
       userRecord = await this.auth.createUser({
-        email: payload.email,
+        email: body.email,
         emailVerified: false,
-        password: payload.password,
-        displayName: `${payload.firstName} ${payload.lastName}`,
+        password: body.password,
+        displayName: `${body.firstName} ${body.lastName}`,
         disabled: false,
       });
     } catch (error) {
@@ -76,9 +74,9 @@ export class FirebaseAuthService implements IAuthService {
 
     const user: IUser = {
       firebaseUID: userRecord.uid,
-      email: payload.email,
-      firstName: payload.firstName,
-      lastName: payload.lastName,
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
       roles: ['student'],
     };
 
@@ -94,7 +92,7 @@ export class FirebaseAuthService implements IAuthService {
   }
 
   async changePassword(
-    payload: ChangePasswordPayload,
+    body: ChangePasswordBody,
     requestUser: IUser,
   ): Promise<{success: boolean; message: string}> {
     // Verify user
@@ -104,13 +102,13 @@ export class FirebaseAuthService implements IAuthService {
     }
 
     // Check password confirmation
-    if (payload.newPassword !== payload.newPasswordConfirm) {
+    if (body.newPassword !== body.newPasswordConfirm) {
       throw new ChangePasswordError('New passwords do not match');
     }
 
     // Update password
     await this.auth.updateUser(firebaseUser.uid, {
-      password: payload.newPassword,
+      password: body.newPassword,
     });
 
     return {success: true, message: 'Password updated successfully'};
