@@ -71,7 +71,105 @@ if (!Container.has('Database')) {
   Container.set<IDatabase>('Database', new MongoDatabase(dbConfig.url, 'vibe'));
 }
 
+import {AbilityBuilder, PureAbility, createMongoAbility} from '@casl/ability';
+
+// // Define allowed actions and subjects
+// export type Actions = 'read' | 'create' | 'update' | 'delete' | 'manage'
+// export type Subjects = 'Course' | 'all'
+// export type Roles = 'admin' | 'student' | 'instructor'
+
+// // Define the shape of an ability rule
+// export type AppAbility = PureAbility<[Actions, Subjects]>
+
+// export function defineAbilityFor(role: Roles): AppAbility {
+//   const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility)
+
+//   if (role === 'admin') {
+//     can('manage', 'all') // Full access
+//   }
+
+//   if (role === 'student') {
+//     can('read', 'Course')
+//   }
+
+//   return build()
+// }
+
+// Actions grouped by subject (union of all possible actions)
+export type Actions =
+  | 'create'
+  | 'read'
+  | 'update'
+  | 'delete'
+  | 'publish'
+  | 'submit'
+  | 'grade'
+  | 'manage'; // general fallback
+
+export type Subjects = 'Course' | 'Module' | 'Assignment' | 'User' | 'all';
+
+type PermissionMap = {
+  [role: string]: {
+    [subject in Subjects]?: Actions[];
+  };
+};
+
+export const rolePermissions: PermissionMap = {
+  admin: {
+    all: ['manage'], // full access
+  },
+  instructor: {
+    Course: ['read', 'update', 'delete'],
+    Module: ['create', 'update', 'publish'],
+    Assignment: ['grade'],
+  },
+  student: {
+    Course: ['read'],
+    Module: ['read'],
+    Assignment: ['submit'],
+  },
+};
+
+export type AppAbility = PureAbility<[Actions, Subjects]>;
+
+export function defineAbilityFor(
+  role: keyof typeof rolePermissions,
+): AppAbility {
+  const {can, build} = new AbilityBuilder<PureAbility<[Actions, Subjects]>>(
+    createMongoAbility,
+  );
+
+  const permissions = rolePermissions[role];
+
+  if (permissions) {
+    for (const subject in permissions) {
+      const actions = permissions[subject as Subjects]!;
+      actions.forEach(action => {
+        can(action, subject as Subjects);
+      });
+    }
+  }
+
+  return build();
+}
+
 export const main = () => {
+  const student = defineAbilityFor('student');
+  const instructor = defineAbilityFor('instructor');
+
+  console.log(
+    'Student can submit assignment:',
+    student.can('submit', 'Assignment'),
+  ); // true
+  console.log(
+    'Instructor can delete module:',
+    instructor.can('delete', 'Module'),
+  ); // false
+  console.log(
+    'Instructor can publish module:',
+    instructor.can('publish', 'Module'),
+  ); // true
+
   ServiceFactory(application, coursesModuleOptions, 4001);
 };
 
