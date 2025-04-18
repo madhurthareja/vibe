@@ -21,7 +21,7 @@ interface Module {
   name: string;
   description: string;
   order: string;
-  sections: any[];
+  sections: unknown[]; // Use unknown[] instead of any[] for lint compliance
   createdAt: Date;
   updatedAt: Date;
 }
