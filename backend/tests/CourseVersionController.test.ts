@@ -6,35 +6,26 @@ import {MongoMemoryServer} from 'mongodb-memory-server';
 import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import Container from 'typedi';
+import {DeleteError} from 'shared/errors/errors';
 
-// Initialize the Express app
 const App = Express();
 let app;
 let mongoServer;
-
-// Increase the timeout for long-running tests
-jest.setTimeout(60000); // Set global timeout to 60 seconds
-
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
-  // Set up the real MongoDatabase and CourseRepository with the in-memory URI
   const db = new MongoDatabase(mongoUri, 'vibe');
   Container.set('Database', db);
   const courseRepo = new CourseRepository(db);
   Container.set('NewCourseRepo', courseRepo);
-  // Set up the Express app with routing controllers
   app = useExpressServer(App, coursesModuleOptions);
 });
 
-// Ensure proper cleanup of resources
 afterAll(async () => {
-  // Close the Express app if necessary
   if (app && app.close) {
     await app.close();
   }
 
-  // Stop the in-memory MongoDB server
   if (mongoServer) {
     await mongoServer.stop();
   }
@@ -134,6 +125,56 @@ describe('MODULE DELETE', () => {
 
       expect(deleteModuleResponse.body.deletedItem.moduleId).toBe(moduleId);
     });
+
+    it('should delete a module with multiple sections and items', async () => {
+      const courseResponse = await request(app)
+        .post('/courses/')
+        .send(coursePayload)
+        .expect(200);
+
+      const courseId = courseResponse.body._id;
+
+      const versionResponse = await request(app)
+        .post(`/courses/${courseId}/versions`)
+        .send(courseVersionPayload)
+        .expect(200);
+
+      const versionId = versionResponse.body.version._id;
+
+      const moduleResponse = await request(app)
+        .post(`/courses/versions/${versionId}/modules`)
+        .send(modulePayload)
+        .expect(200);
+
+      const moduleId = moduleResponse.body.version.modules[0].moduleId;
+
+      // Add multiple sections and items
+      for (let i = 0; i < 3; i++) {
+        const sectionResponse = await request(app)
+          .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+          .send(sectionPayload)
+          .expect(200);
+
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[i].sectionId;
+
+        // Add items to the section
+        for (let j = 0; j < 2; j++) {
+          await request(app)
+            .post(
+              `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
+            )
+            .send(itemPayload)
+            .expect(200);
+        }
+      }
+
+      const deleteModuleResponse = await request(app)
+        .delete(`/courses/versions/${versionId}/modules/${moduleId}`)
+        .expect(200);
+
+      expect(deleteModuleResponse.body.deletedItem.moduleId).toBe(moduleId);
+    });
   });
 
   describe('Failure Scenario', () => {
@@ -157,6 +198,84 @@ describe('MODULE DELETE', () => {
           `/courses/versions/${invalidVersionId}/modules/${invalidModuleId}`,
         )
         .expect(400);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle no sections in the module', async () => {
+      const courseResponse = await request(app)
+        .post('/courses/')
+        .send(coursePayload)
+        .expect(200);
+
+      const courseId = courseResponse.body._id;
+
+      const versionResponse = await request(app)
+        .post(`/courses/${courseId}/versions`)
+        .send(courseVersionPayload)
+        .expect(200);
+
+      const versionId = versionResponse.body.version._id;
+
+      const moduleResponse = await request(app)
+        .post(`/courses/versions/${versionId}/modules`)
+        .send(modulePayload)
+        .expect(200);
+
+      const moduleId = moduleResponse.body.version.modules[0].moduleId;
+
+      const deleteModuleResponse = await request(app)
+        .delete(`/courses/versions/${versionId}/modules/${moduleId}`)
+        .expect(200);
+
+      expect(deleteModuleResponse.body.deletedItem.moduleId).toBe(moduleId);
+    });
+
+    it('should handle sections with no items', async () => {
+      const courseResponse = await request(app)
+        .post('/courses/')
+        .send(coursePayload)
+        .expect(200);
+
+      const courseId = courseResponse.body._id;
+
+      const versionResponse = await request(app)
+        .post(`/courses/${courseId}/versions`)
+        .send(courseVersionPayload)
+        .expect(200);
+
+      const versionId = versionResponse.body.version._id;
+
+      const moduleResponse = await request(app)
+        .post(`/courses/versions/${versionId}/modules`)
+        .send(modulePayload)
+        .expect(200);
+
+      const moduleId = moduleResponse.body.version.modules[0].moduleId;
+
+      const sectionResponse = await request(app)
+        .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+        .send(sectionPayload)
+        .expect(200);
+
+      const deleteModuleResponse = await request(app)
+        .delete(`/courses/versions/${versionId}/modules/${moduleId}`)
+        .expect(200);
+
+      expect(deleteModuleResponse.body.deletedItem.moduleId).toBe(moduleId);
+    });
+
+    it('should handle course version not found', async () => {
+      const invalidVersionId = '5f9b1b3c9d1f1f1f1f1f1f1f';
+      const moduleId = '5f9b1b3c9d1f1f1f1f1f1f1f';
+
+      const deleteModuleResponse = await request(app)
+        .delete(`/courses/versions/${invalidVersionId}/modules/${moduleId}`)
+        .expect(404);
+
+      expect(deleteModuleResponse.body.message).toContain(
+        'Course Version not found',
+      );
     });
   });
 });
