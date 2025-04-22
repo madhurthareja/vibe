@@ -27,14 +27,12 @@ export class MongoDatabase implements IDatabase<Db> {
    * Creates an instance of MongoDatabase.
    * @param {string} uri - The MongoDB connection URI.
    * @param {string} dbName - The name of the database to connect to.
-   * @param {MongoClientOptions} options - Optional MongoDB client options.
    */
   constructor(
     private readonly uri: string,
     private readonly dbName: string,
-    private readonly options: MongoClientOptions = {}, // <-- add comma here
   ) {
-    this.client = new MongoClient(uri, options); // Use options if provided
+    this.client = new MongoClient(uri); // Removed options parameter
   }
 
   /**

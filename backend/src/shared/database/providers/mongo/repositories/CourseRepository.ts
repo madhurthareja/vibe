@@ -12,19 +12,9 @@ import {
   ReadError,
   UpdateError,
 } from 'shared/errors/errors';
-import {ICourse} from 'shared/interfaces/IUser';
+import {ICourse, IModule} from 'shared/interfaces/IUser';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
-
-interface Module {
-  moduleId: string;
-  name: string;
-  description: string;
-  order: string;
-  sections: unknown[]; // Use unknown[] instead of any[] for lint compliance
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 @Service()
 export class CourseRepository implements ICourseRepository {
@@ -266,10 +256,11 @@ export class CourseRepository implements ICourseRepository {
   async deleteModule(
     versionId: string,
     moduleId: string,
-  ): Promise<Module | null> {
+  ): Promise<IModule | null> {
     await this.init();
     try {
       console.log('Starting deleteModule process');
+      console.log('Received versionId:', versionId, 'moduleId:', moduleId);
 
       // Convert versionId and moduleId to ObjectId
       const versionObjectId = new ObjectId(versionId);
@@ -304,14 +295,21 @@ export class CourseRepository implements ICourseRepository {
         );
         console.log('Item group IDs to delete:', itemGroupsIds);
 
-        const itemDeletionResult = await this.itemsGroupCollection.deleteMany({
-          _id: {$in: itemGroupsIds},
-        });
-        console.log('Item deletion result:', itemDeletionResult);
+        try {
+          const itemDeletionResult = await this.itemsGroupCollection.deleteMany(
+            {
+              _id: {$in: itemGroupsIds},
+            },
+          );
+          console.log('Item deletion result:', itemDeletionResult);
 
-        if (itemDeletionResult.deletedCount === 0) {
-          console.error('Failed to delete item groups');
-          throw new DeleteError('Failed to delete item groups');
+          if (itemDeletionResult.deletedCount === 0) {
+            console.error('Failed to delete item groups');
+            throw new DeleteError('Failed to delete item groups');
+          }
+        } catch (error) {
+          console.error('Error during item deletion:', error);
+          throw new DeleteError('Item deletion failed');
         }
       } else {
         console.log('No sections or items to delete.');
@@ -341,13 +339,18 @@ export class CourseRepository implements ICourseRepository {
         ...module,
         moduleId: module.moduleId.toString(),
         // If you have other ObjectId fields, convert them here as well
-      } as Module;
+      } as IModule;
     } catch (error) {
+      console.error('Error caught in deleteModule:', error);
       if (error instanceof ItemNotFoundError) {
         console.error('Item not found:', error.message);
         throw error; // Let the controller handle this error
       }
-      console.error('Error in deleteModule:', error);
+      if (error instanceof DeleteError) {
+        console.error('Delete error:', error.message);
+        throw error; // Let the controller handle this error
+      }
+      console.error('Unexpected error in deleteModule:', error);
       throw new DeleteError(
         'Failed to delete module.\n More Details: ' + error,
       );

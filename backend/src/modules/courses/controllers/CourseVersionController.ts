@@ -143,7 +143,9 @@ export class CourseVersionController {
         versionId,
         moduleId,
       );
-      const deleted: any = deletedModule;
+      const deleted: {moduleId: string} = {
+        moduleId: deletedModule.moduleId.toString(),
+      };
       return {
         deletedItem: instanceToPlain({
           ...deleted,
@@ -155,7 +157,8 @@ export class CourseVersionController {
         throw new HttpError(404, error.message);
       }
       if (error instanceof DeleteError) {
-        throw new HttpError(500, error.message);
+        console.error('Delete error:', error.message);
+        throw new HttpError(500, 'Item deletion failed');
       }
       throw new HttpError(500, error.message);
     }
