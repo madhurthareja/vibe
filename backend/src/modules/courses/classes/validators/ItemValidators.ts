@@ -20,7 +20,7 @@ import {
   IQuizDetails,
   ItemType,
   IVideoDetails,
-} from 'shared/interfaces/IUser';
+} from 'shared/interfaces/Models';
 
 /**
  * Video item details for embedded video learning content.

@@ -90,6 +90,8 @@ export interface IBlogItem {
   _id: string;
   title: string;
   content: string;
+  estimatedReadTimeInMinutes: Number;
+  tags: string[];
   points: Number;
 }
 

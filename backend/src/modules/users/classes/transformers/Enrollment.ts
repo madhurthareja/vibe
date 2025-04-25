@@ -5,7 +5,7 @@ import {
   ObjectIdToString,
   StringToObjectId,
 } from 'shared/constants/transformerConstants';
-import {IEnrollment} from 'shared/interfaces/IUser';
+import {IEnrollment} from 'shared/interfaces/Models';
 import {ID} from 'shared/types';
 
 @Expose()

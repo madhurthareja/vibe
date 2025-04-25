@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
-import {IEnrollment, IProgress} from 'shared/interfaces/IUser';
+import {IEnrollment, IProgress} from 'shared/interfaces/Models';
 import {CreateError, ItemNotFoundError, ReadError} from 'shared/errors/errors';
 
 @Service()

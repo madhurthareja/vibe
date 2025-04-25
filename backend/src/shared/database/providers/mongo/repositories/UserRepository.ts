@@ -1,5 +1,5 @@
 import {Collection, ObjectId, WithId} from 'mongodb';
-import {IUser} from 'shared/interfaces/IUser';
+import {IUser} from 'shared/interfaces/Models';
 import {Inject, Service} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {IUserRepository} from 'shared/database/interfaces/IUserRepository';

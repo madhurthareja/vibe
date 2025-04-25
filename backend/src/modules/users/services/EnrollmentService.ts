@@ -16,7 +16,7 @@ import {Enrollment} from '../classes/transformers/Enrollment';
 import {Progress} from '../classes/transformers/Progress';
 import {ItemNotFoundError} from 'shared/errors/errors';
 import {ObjectId} from 'mongodb';
-import {ICourseVersion} from 'shared/interfaces/IUser';
+import {ICourseVersion} from 'shared/interfaces/Models';
 
 @Service()
 export class EnrollmentService {

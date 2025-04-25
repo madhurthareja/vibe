@@ -5,7 +5,7 @@ import {
   ObjectIdToString,
   StringToObjectId,
 } from 'shared/constants/transformerConstants';
-import {IProgress} from 'shared/interfaces/IUser';
+import {IProgress} from 'shared/interfaces/Models';
 import {ID} from 'shared/types';
 
 @Expose()

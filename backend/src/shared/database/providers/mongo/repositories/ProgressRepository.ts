@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Inject, Service} from 'typedi';
-import {IEnrollment, IProgress} from 'shared/interfaces/IUser';
+import {IEnrollment, IProgress} from 'shared/interfaces/Models';
 import {
   CreateError,
   ItemNotFoundError,

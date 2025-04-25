@@ -5,7 +5,7 @@ import {ObjectId} from 'mongodb';
 // Import the actual repository and database classes
 import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
 import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
-import {IProgress} from 'shared/interfaces/IUser';
+import {IProgress} from 'shared/interfaces/Models';
 import {setupUsersModuleDependencies} from 'modules/users';
 
 describe('ProgressRepository Unit Tests', () => {

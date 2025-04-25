@@ -17,7 +17,7 @@ import {
   IModule,
   IEnrollment,
   IProgress,
-} from 'shared/interfaces/IUser';
+} from 'shared/interfaces/Models';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 
