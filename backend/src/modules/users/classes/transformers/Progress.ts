@@ -45,6 +45,9 @@ export class Progress implements IProgress {
   @Transform(StringToObjectId.transformer, {toClassOnly: true})
   currentItem: ID;
 
+  @Expose()
+  completed: boolean;
+
   constructor(
     userId?: string,
     courseId?: string,

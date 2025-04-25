@@ -301,4 +301,5 @@ export interface IProgress {
   currentModule: string | ObjectId;
   currentSection: string | ObjectId;
   currentItem: string | ObjectId;
+  completed: boolean;
 }

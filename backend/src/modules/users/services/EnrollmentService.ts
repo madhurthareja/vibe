@@ -29,7 +29,7 @@ export class EnrollmentService {
 
   async enrollUser(userId: string, courseId: string, courseVersionId: string) {
     // Check if user, course, and courseVersion exist
-    const user = await this.userRepo.findByFirebaseUID(userId);
+    const user = await this.userRepo.findById(userId);
     if (!user) {
       throw new ItemNotFoundError('User not found');
     }
@@ -125,12 +125,13 @@ export class EnrollmentService {
 
     // Create progress record
     return await this.enrollmentRepo.createProgress({
-      userId: userId,
+      userId: new ObjectId(userId),
       courseId: new ObjectId(courseId),
       courseVersionId: new ObjectId(courseVersionId),
       currentModule: firstModule.moduleId,
       currentSection: firstSection.sectionId,
       currentItem: firstItem.itemId,
+      completed: false,
     });
   }
 }
