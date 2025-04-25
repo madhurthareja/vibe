@@ -115,6 +115,37 @@ class ProgressRepository {
       );
     }
   }
+
+  // /**
+  //  * Start tracking an item
+  //  */
+  // async startItemTracking(
+  //   userId: string,
+  //   itemId: string,
+  // ): Promise<IProgress | null> {
+  //   await this.init();
+  //   try {
+  //     const result = await this.progressCollection.findOneAndUpdate(
+  //       {
+  //         userId: new ObjectId(userId),
+  //         courseId: new ObjectId(courseId),
+  //         courseVersionId: new ObjectId(courseVersionId),
+  //       },
+  //       {$set: {currentItem: itemId}},
+  //       {returnDocument: 'after'},
+  //     );
+
+  //     if (!result._id) {
+  //       throw new ItemNotFoundError('Progress not found');
+  //     }
+
+  //     return result;
+  //   } catch (error) {
+  //     throw new UpdateError(
+  //       `Failed to start item tracking: ${error.message}`,
+  //     );
+  //   }
+  // }
 }
 
 export {ProgressRepository};

@@ -121,6 +121,13 @@ class BlogDetailsPayloadValidator implements IBlogDetails {
   @IsNotEmpty()
   @IsDecimal()
   points: number;
+
+  /**
+   * Estimated time to complete the blog in minutes.
+   */
+  @IsNotEmpty()
+  @IsPositive()
+  estimatedReadTimeInMinutes: number;
 }
 
 /**

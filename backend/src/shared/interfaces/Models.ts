@@ -283,6 +283,7 @@ export interface IBlogDetails {
   tags: string[];
   content: string;
   points: number;
+  estimatedReadTimeInMinutes: number;
 }
 
 // New interfaces for user enrollment and progress tracking

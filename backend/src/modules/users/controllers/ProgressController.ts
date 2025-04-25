@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import {Get, HttpCode, JsonController, Params} from 'routing-controllers';
+import {Body, Get, HttpCode, JsonController, Params} from 'routing-controllers';
 import {Inject, Service} from 'typedi';
 import {Progress} from '../classes/transformers';
 import {IsMongoId, IsNotEmpty, IsString} from 'class-validator';
 import {ProgressService} from '../services/ProgressService';
 
-class GetUserProgressParams {
+export class GetUserProgressParams {
   @IsNotEmpty()
   @IsString()
   @IsMongoId()
@@ -20,6 +20,23 @@ class GetUserProgressParams {
   @IsString()
   @IsMongoId()
   courseVersionId: string;
+}
+
+export class StartItemBody {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  itemId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  moduleId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  sectionId: string;
 }
 
 @JsonController('/users', {transformResponse: true})
@@ -46,6 +63,31 @@ class ProgressController {
       userId,
       courseId,
       courseVersionId,
+    );
+
+    return progress;
+  }
+  @Get(
+    '/:userId/progress/courses/:courseId/versions/:courseVersionId/items/:itemId/start',
+  )
+  @HttpCode(200)
+  async startItem(
+    @Params() params: GetUserProgressParams,
+    @Body() body: StartItemBody,
+  ): Promise<unknown> {
+    const {userId, courseId, courseVersionId} = params;
+
+    const progress = await this.progressService.getUserProgress(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+
+    const started: boolean = await this.progressService.startItem(
+      userId,
+      courseId,
+      courseVersionId,
+      body,
     );
 
     return progress;
