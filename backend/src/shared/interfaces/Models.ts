@@ -306,3 +306,13 @@ export interface IProgress {
   currentItem: string | ObjectId;
   completed: boolean;
 }
+
+export interface IWatchTime {
+  _id?: string | ObjectId | null;
+  userId: string | ObjectId;
+  courseId: string | ObjectId;
+  courseVersionId: string | ObjectId;
+  itemId: string | ObjectId;
+  startTime: Date;
+  endTime?: Date;
+}

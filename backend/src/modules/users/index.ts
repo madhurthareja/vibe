@@ -16,6 +16,7 @@ import {dbConfig} from '../../config/db';
 import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
 import {ProgressController} from './controllers/index';
 import {ProgressService} from './services/ProgressService';
+import {Course} from 'modules/courses';
 useContainer(Container);
 
 export function setupUsersModuleDependencies(): void {
@@ -65,7 +66,11 @@ export function setupUsersModuleDependencies(): void {
   if (!Container.has('ProgressService')) {
     Container.set(
       'ProgressService',
-      new ProgressService(Container.get<ProgressRepository>('ProgressRepo')),
+      new ProgressService(
+        Container.get<ProgressRepository>('ProgressRepo'),
+        Container.get<CourseRepository>('CourseRepo'),
+        Container.get<UserRepository>('UserRepo'),
+      ),
     );
   }
 }

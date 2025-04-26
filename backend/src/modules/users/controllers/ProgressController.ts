@@ -1,9 +1,20 @@
 import 'reflect-metadata';
-import {Body, Get, HttpCode, JsonController, Params} from 'routing-controllers';
+import {
+  Body,
+  Get,
+  HttpCode,
+  InternalServerError,
+  JsonController,
+  OnUndefined,
+  Params,
+  Patch,
+  Post,
+} from 'routing-controllers';
 import {Inject, Service} from 'typedi';
 import {Progress} from '../classes/transformers';
 import {IsMongoId, IsNotEmpty, IsString} from 'class-validator';
 import {ProgressService} from '../services/ProgressService';
+import {Expose} from 'class-transformer';
 
 export class GetUserProgressParams {
   @IsNotEmpty()
@@ -39,6 +50,110 @@ export class StartItemBody {
   sectionId: string;
 }
 
+export class StartItemParams {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseVersionId: string;
+}
+
+export class StartItemResponse {
+  @Expose()
+  watchItemId: string;
+
+  constructor(data: Partial<StartItemResponse>) {
+    Object.assign(this, data);
+  }
+}
+
+export class StopItemParams {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseVersionId: string;
+}
+
+export class StopItemBody {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  watchItemId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  itemId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  sectionId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  moduleId: string;
+}
+
+export class UpdateProgressBody {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  moduleId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  sectionId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  itemId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  watchItemId: string;
+}
+
+export class UpdateProgressParams {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseVersionId: string;
+}
+
 @JsonController('/users', {transformResponse: true})
 @Service()
 /**
@@ -67,30 +182,67 @@ class ProgressController {
 
     return progress;
   }
-  @Get(
-    '/:userId/progress/courses/:courseId/versions/:courseVersionId/items/:itemId/start',
-  )
+  @Post('/:userId/progress/courses/:courseId/versions/:courseVersionId/start')
   @HttpCode(200)
   async startItem(
-    @Params() params: GetUserProgressParams,
+    @Params() params: StartItemParams,
     @Body() body: StartItemBody,
-  ): Promise<unknown> {
+  ): Promise<StartItemResponse> {
     const {userId, courseId, courseVersionId} = params;
+    const {itemId, moduleId, sectionId} = body;
 
-    const progress = await this.progressService.getUserProgress(
+    const watchItemId: string = await this.progressService.startItem(
       userId,
       courseId,
       courseVersionId,
+      moduleId,
+      sectionId,
+      itemId,
     );
 
-    const started: boolean = await this.progressService.startItem(
+    return new StartItemResponse({
+      watchItemId,
+    });
+  }
+
+  @Post('/:userId/progress/courses/:courseId/versions/:courseVersionId/stop')
+  @OnUndefined(200)
+  async stopItem(
+    @Params() params: StopItemParams,
+    @Body() body: StopItemBody,
+  ): Promise<void> {
+    const {userId, courseId, courseVersionId} = params;
+    const {itemId, sectionId, moduleId, watchItemId} = body;
+
+    await this.progressService.stopItem(
       userId,
       courseId,
       courseVersionId,
-      body,
+      itemId,
+      sectionId,
+      moduleId,
+      watchItemId,
     );
+  }
 
-    return progress;
+  @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/update')
+  @HttpCode(200)
+  async updateProgress(
+    @Params() params: UpdateProgressParams,
+    @Body() body: UpdateProgressBody,
+  ): Promise<void> {
+    const {userId, courseId, courseVersionId} = params;
+    const {itemId, moduleId, sectionId, watchItemId} = body;
+
+    await this.progressService.updateProgress(
+      userId,
+      courseId,
+      courseVersionId,
+      moduleId,
+      sectionId,
+      itemId,
+      watchItemId,
+    );
   }
 }
 export {ProgressController};

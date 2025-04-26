@@ -9,9 +9,15 @@ import {
   coursesModuleOptions,
   setupCoursesModuleDependencies,
 } from 'modules/courses';
-import {setupUsersModuleDependencies, usersModuleOptions} from '..';
+import {
+  setupUsersModuleDependencies,
+  StartItemBody,
+  StopItemBody,
+  usersModuleOptions,
+} from '..';
 import {createFullEnrollmentFixture, Fixture} from './common';
 import {faker} from '@faker-js/faker/.';
+import {isMongoId} from 'class-validator';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -50,7 +56,7 @@ describe('Progress Controller Integration Tests', () => {
     app = useExpressServer(appInstance, options);
 
     f = await createFullEnrollmentFixture(app);
-  });
+  }, 10000);
 
   afterAll(async () => {
     // Stop the in-memory MongoDB server
@@ -157,14 +163,11 @@ describe('Progress Controller Integration Tests', () => {
           `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}`,
         )
         .expect(404);
-
-      console.log(response.body);
-
       //expect body.errors to be truthy
       expect(response.body).toHaveProperty('name');
       expect(response.body.name).toBe('NotFoundError');
       expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toBe('Progress not found');
+      expect(response.body.message).toBe('Course not found');
     });
 
     it('should return 404 if progress not found when userId is fake', async () => {
@@ -182,7 +185,7 @@ describe('Progress Controller Integration Tests', () => {
       expect(response.body).toHaveProperty('name');
       expect(response.body.name).toBe('NotFoundError');
       expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toBe('Progress not found');
+      expect(response.body.message).toBe('User not found');
     });
 
     it('should return 404 if progress not found when all params are fake', async () => {
@@ -200,7 +203,101 @@ describe('Progress Controller Integration Tests', () => {
       expect(response.body).toHaveProperty('name');
       expect(response.body.name).toBe('NotFoundError');
       expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toBe('Progress not found');
+      expect(response.body.message).toBe('User not found');
     });
+  });
+
+  describe('Start Item', () => {
+    it('should start the item tracking for recording progress', async () => {
+      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+        f;
+      const startItemBody: StartItemBody = {
+        itemId,
+        moduleId,
+        sectionId,
+      };
+      // Start the item progress
+      const startItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+        )
+        .send(startItemBody)
+        .expect(200);
+
+      // Expect the response to contain the watchItemId
+      expect(startItemResponse.body).toHaveProperty('watchItemId');
+      expect(startItemResponse.body.watchItemId).toBeTruthy();
+      expect(isMongoId(startItemResponse.body.watchItemId)).toBe(true);
+    });
+  });
+
+  describe('Stop Item', () => {
+    it('should stop the item tracking for recording progress', async () => {
+      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+        f;
+      const startItemBody: StartItemBody = {
+        itemId,
+        moduleId,
+        sectionId,
+      };
+      // Start the item progress
+      const startItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+        )
+        .send(startItemBody)
+        .expect(200);
+
+      // Stop the item progress
+      const stopItemBody: StopItemBody = {
+        sectionId,
+        moduleId,
+        itemId,
+        watchItemId: startItemResponse.body.watchItemId,
+      };
+
+      const stopItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+        )
+        .send(stopItemBody);
+    });
+
+    it('should throw error when invalid itemId is sent', async () => {
+      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+        f;
+      const startItemBody: StartItemBody = {
+        itemId,
+        moduleId,
+        sectionId,
+      };
+      // Start the item progress
+      const startItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+        )
+        .send(startItemBody)
+        .expect(200);
+
+      // Stop the item progress
+      const fakeId = faker.database.mongodbObjectId();
+      const stopItemBody: StopItemBody = {
+        sectionId: sectionId,
+        moduleId: moduleId,
+        itemId: fakeId,
+        watchItemId: startItemResponse.body.watchItemId,
+      };
+
+      const stopItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+        )
+        .send(stopItemBody)
+        .expect(404);
+    });
+  });
+
+  describe('Update Item Progress', () => {
+    it("should successfully update an item's progres", async () => {});
   });
 });

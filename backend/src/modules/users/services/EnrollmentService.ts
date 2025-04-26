@@ -1,20 +1,10 @@
 import 'reflect-metadata';
-import {instanceToPlain} from 'class-transformer';
-import {
-  Authorized,
-  JsonController,
-  Params,
-  Post,
-  HttpError,
-} from 'routing-controllers';
+import {NotFoundError} from 'routing-controllers';
 import {Inject, Service} from 'typedi';
-import {EnrollmentParams} from '../classes/validators/EnrollmentValidators';
 import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
 import {Enrollment} from '../classes/transformers/Enrollment';
-import {Progress} from '../classes/transformers/Progress';
-import {ItemNotFoundError} from 'shared/errors/errors';
 import {ObjectId} from 'mongodb';
 import {ICourseVersion} from 'shared/interfaces/Models';
 
@@ -31,19 +21,19 @@ export class EnrollmentService {
     // Check if user, course, and courseVersion exist
     const user = await this.userRepo.findById(userId);
     if (!user) {
-      throw new ItemNotFoundError('User not found');
+      throw new NotFoundError('User not found');
     }
 
     // Check if course exists
     const course = await this.courseRepo.read(courseId);
     if (!course) {
-      throw new ItemNotFoundError('Course not found');
+      throw new NotFoundError('Course not found');
     }
 
     // Check if course version exists and belongs to the course
     const courseVersion = await this.courseRepo.readVersion(courseVersionId);
     if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'Course version not found or does not belong to this course',
       );
     }

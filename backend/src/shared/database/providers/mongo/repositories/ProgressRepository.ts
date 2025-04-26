@@ -1,14 +1,10 @@
 import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Inject, Service} from 'typedi';
-import {IEnrollment, IProgress} from 'shared/interfaces/Models';
-import {
-  CreateError,
-  ItemNotFoundError,
-  ReadError,
-  UpdateError,
-} from 'shared/errors/errors';
+import {IEnrollment, IProgress, IWatchTime} from 'shared/interfaces/Models';
+import {CreateError, ReadError, UpdateError} from 'shared/errors/errors';
 import {MongoDatabase} from '../MongoDatabase';
+import {NotFoundError} from 'routing-controllers';
 
 type CurrentProgress = Pick<
   IProgress,
@@ -18,12 +14,15 @@ type CurrentProgress = Pick<
 @Service()
 class ProgressRepository {
   private progressCollection: Collection<IProgress>;
+  private watchTimeCollection: Collection<IWatchTime>;
 
   constructor(@Inject(() => MongoDatabase) private db: MongoDatabase) {}
 
   private async init() {
     this.progressCollection =
       await this.db.getCollection<IProgress>('progress');
+    this.watchTimeCollection =
+      await this.db.getCollection<IWatchTime>('watchTime');
   }
 
   /**
@@ -78,7 +77,7 @@ class ProgressRepository {
       );
 
       if (!result._id) {
-        throw new ItemNotFoundError('Progress not found');
+        throw new NotFoundError('Progress not found');
       }
 
       return result;
@@ -105,7 +104,7 @@ class ProgressRepository {
       });
 
       if (!newProgress) {
-        throw new ItemNotFoundError('Newly created progress not found');
+        throw new NotFoundError('Newly created progress not found');
       }
 
       return newProgress;
@@ -116,36 +115,96 @@ class ProgressRepository {
     }
   }
 
-  // /**
-  //  * Start tracking an item
-  //  */
-  // async startItemTracking(
-  //   userId: string,
-  //   itemId: string,
-  // ): Promise<IProgress | null> {
-  //   await this.init();
-  //   try {
-  //     const result = await this.progressCollection.findOneAndUpdate(
-  //       {
-  //         userId: new ObjectId(userId),
-  //         courseId: new ObjectId(courseId),
-  //         courseVersionId: new ObjectId(courseVersionId),
-  //       },
-  //       {$set: {currentItem: itemId}},
-  //       {returnDocument: 'after'},
-  //     );
+  /**
+   * Start watching an item
+   * @param userId - The ID of the user
+   * @param courseId - The ID of the course
+   * @param courseVersionId - The ID of the course version
+   * @param itemId - The ID of the item
+   */
+  async startItemTracking(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    itemId: string,
+  ): Promise<string> {
+    await this.init();
+    try {
+      const watchTime: IWatchTime = {
+        userId: new ObjectId(userId),
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
+        itemId: new ObjectId(itemId),
+        startTime: new Date(),
+        endTime: new Date(),
+      };
+      const result = await this.watchTimeCollection.insertOne(watchTime);
 
-  //     if (!result._id) {
-  //       throw new ItemNotFoundError('Progress not found');
-  //     }
+      if (!result.acknowledged) {
+        throw new CreateError('Failed to start watching item');
+      }
 
-  //     return result;
-  //   } catch (error) {
-  //     throw new UpdateError(
-  //       `Failed to start item tracking: ${error.message}`,
-  //     );
-  //   }
-  // }
+      return result.insertedId.toString();
+    } catch (error) {
+      throw new CreateError(`Failed to start watching item: ${error.message}`);
+    }
+  }
+  async stopItemTracking(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    itemId: string,
+    watchTimeId: string,
+  ): Promise<IWatchTime | null> {
+    await this.init();
+
+    try {
+      const result = await this.watchTimeCollection.findOneAndUpdate(
+        {
+          _id: new ObjectId(watchTimeId),
+          userId: new ObjectId(userId),
+          courseId: new ObjectId(courseId),
+          courseVersionId: new ObjectId(courseVersionId),
+          itemId: new ObjectId(itemId),
+        },
+        {$set: {endTime: new Date()}},
+        {returnDocument: 'after'},
+      );
+
+      if (!result) {
+        throw new NotFoundError('Watch time not found');
+      }
+
+      return result;
+    } catch (error) {
+      throw new UpdateError(`Failed to stop watching item: ${error.message}`);
+    }
+  }
+  async getWatchTime(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    itemId: string,
+  ): Promise<IWatchTime | null> {
+    await this.init();
+    const result = await this.watchTimeCollection.findOne({
+      userId: new ObjectId(userId),
+      courseId: new ObjectId(courseId),
+      courseVersionId: new ObjectId(courseVersionId),
+      itemId: new ObjectId(itemId),
+    });
+
+    return result;
+  }
+
+  async getWatchTimeById(id: string): Promise<IWatchTime | null> {
+    await this.init();
+    const result = await this.watchTimeCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    return result;
+  }
 }
 
 export {ProgressRepository};

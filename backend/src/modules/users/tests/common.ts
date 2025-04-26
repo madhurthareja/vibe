@@ -56,6 +56,14 @@ export async function createFullEnrollmentFixture(
     .expect(201);
   const moduleId = moduleRes.body.version.modules[0].moduleId;
 
+  const module2Res = await request(app)
+    .post(`/courses/versions/${courseVersionId}/modules`)
+    .send({
+      name: faker.commerce.productName(),
+      description: faker.commerce.productDescription(),
+    })
+    .expect(201);
+
   // 5) section
   const sectionRes = await request(app)
     .post(`/courses/versions/${courseVersionId}/modules/${moduleId}/sections`)
@@ -65,6 +73,14 @@ export async function createFullEnrollmentFixture(
     })
     .expect(201);
   const sectionId = sectionRes.body.version.modules[0].sections[0].sectionId;
+
+  const section2Res = await request(app)
+    .post(`/courses/versions/${courseVersionId}/modules/${moduleId}/sections`)
+    .send({
+      name: faker.commerce.productName(),
+      description: faker.commerce.productDescription(),
+    })
+    .expect(201);
 
   // 6) item
   const itemRes = await request(app)
@@ -84,6 +100,23 @@ export async function createFullEnrollmentFixture(
     })
     .expect(201);
   const itemId = itemRes.body.itemsGroup.items[0].itemId;
+
+  const item2Res = await request(app)
+    .post(
+      `/courses/versions/${courseVersionId}/modules/${moduleId}/sections/${sectionId}/items`,
+    )
+    .send({
+      name: 'Item1',
+      description: 'This an item',
+      type: 'VIDEO',
+      videoDetails: {
+        URL: 'http://url.com',
+        startTime: '00:00:00',
+        endTime: '00:00:40',
+        points: '10.5',
+      },
+    })
+    .expect(201);
 
   // 7) enroll
   await request(app)
