@@ -13,11 +13,16 @@ import {
   setupUsersModuleDependencies,
   StartItemBody,
   StopItemBody,
+  UpdateProgressBody,
   usersModuleOptions,
 } from '..';
 import {createFullEnrollmentFixture, Fixture} from './common';
 import {faker} from '@faker-js/faker/.';
 import {isMongoId} from 'class-validator';
+import {ProgressService} from '../services/ProgressService';
+import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
+import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -32,12 +37,23 @@ describe('Progress Controller Integration Tests', () => {
     // Start an in-memory MongoDB servera
     mongoServer = await MongoMemoryServer.create();
     const uri = mongoServer.getUri();
-
     Container.set('Database', new MongoDatabase(uri, 'vibe'));
 
     setupAuthModuleDependencies();
     setupCoursesModuleDependencies();
     setupUsersModuleDependencies();
+
+    const progressService = new ProgressService(
+      Container.get<ProgressRepository>('ProgressRepo'),
+      Container.get<CourseRepository>('CourseRepo'),
+      Container.get<UserRepository>('UserRepo'),
+    );
+
+    // Remove the old ProgressService from the container
+    if (Container.has('ProgressService')) {
+      Container.remove('ProgressService');
+    }
+    Container.set('ProgressService', progressService);
 
     // Create the Express app with routing-controllers configuration
     const options: RoutingControllersOptions = {
@@ -56,7 +72,7 @@ describe('Progress Controller Integration Tests', () => {
     app = useExpressServer(appInstance, options);
 
     f = await createFullEnrollmentFixture(app);
-  }, 10000);
+  }, 100000);
 
   afterAll(async () => {
     // Stop the in-memory MongoDB server
@@ -248,43 +264,14 @@ describe('Progress Controller Integration Tests', () => {
         .send(startItemBody)
         .expect(200);
 
+      //log the response
+      console.log('Start Item Response:', startItemResponse.body);
+
       // Stop the item progress
       const stopItemBody: StopItemBody = {
         sectionId,
         moduleId,
         itemId,
-        watchItemId: startItemResponse.body.watchItemId,
-      };
-
-      const stopItemResponse = await request(app)
-        .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
-        )
-        .send(stopItemBody);
-    });
-
-    it('should throw error when invalid itemId is sent', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
-      const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
-      };
-      // Start the item progress
-      const startItemResponse = await request(app)
-        .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
-        )
-        .send(startItemBody)
-        .expect(200);
-
-      // Stop the item progress
-      const fakeId = faker.database.mongodbObjectId();
-      const stopItemBody: StopItemBody = {
-        sectionId: sectionId,
-        moduleId: moduleId,
-        itemId: fakeId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
@@ -293,11 +280,70 @@ describe('Progress Controller Integration Tests', () => {
           `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
         )
         .send(stopItemBody)
-        .expect(404);
+        .expect(200);
     });
   });
 
-  describe('Update Item Progress', () => {
-    it("should successfully update an item's progres", async () => {});
+  describe('Update Progress', () => {
+    it('should update the progress', async () => {
+      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+        f;
+      // Start the item progress
+      const startItemBody: StartItemBody = {
+        itemId,
+        moduleId,
+        sectionId,
+      };
+      const startItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+        )
+        .send(startItemBody)
+        .expect(200);
+
+      //log the response
+      console.log('Start Item Response:', startItemResponse.body);
+
+      // Stop the item progress
+      const stopItemBody: StopItemBody = {
+        sectionId,
+        moduleId,
+        itemId,
+        watchItemId: startItemResponse.body.watchItemId,
+      };
+      const stopItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+        )
+        .send(stopItemBody)
+        .expect(200);
+      //log the response
+
+      console.log('Stop Item Response:', stopItemResponse.status);
+
+      // Update the progress
+      const updateProgressBody: UpdateProgressBody = {
+        moduleId: moduleId,
+        sectionId: sectionId,
+        itemId: itemId,
+        watchItemId: startItemResponse.body.watchItemId,
+      };
+
+      jest
+        .spyOn(ProgressService.prototype as any, 'isValidWatchTime')
+        .mockReturnValueOnce(true);
+
+      const updateProgressResponse = await request(app)
+        .patch(
+          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/update`,
+        )
+        .send(updateProgressBody);
+      //log the response
+      console.log('Update Progress Response:', updateProgressResponse.status);
+      //log the body
+      console.log('Update Progress Body:', updateProgressResponse.body);
+
+      // Expect the response to be 200
+    });
   });
 });

@@ -387,7 +387,7 @@ class ProgressService {
     await this.verifyProgress(
       userId,
       courseId,
-      courseId,
+      courseVersionId,
       moduleId,
       sectionId,
       itemId,
@@ -453,7 +453,9 @@ class ProgressService {
 
     const isValid = this.isValidWatchTime(watchTime, item);
     if (!isValid) {
-      throw new BadRequestError('Watch time is not valid');
+      throw new BadRequestError(
+        'Watch time is not valid, the user did not watch the item long enough',
+      );
     }
 
     // Get the course version
@@ -480,7 +482,6 @@ class ProgressService {
     if (!updatedProgress) {
       throw new InternalServerError('Progress could not be updated');
     }
-    return updatedProgress;
   }
 }
 

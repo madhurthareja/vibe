@@ -68,15 +68,16 @@ class ProgressRepository {
     try {
       const result = await this.progressCollection.findOneAndUpdate(
         {
-          userId: userId,
+          userId: new ObjectId(userId),
           courseId: new ObjectId(courseId),
           courseVersionId: new ObjectId(courseVersionId),
         },
         {$set: progress},
         {returnDocument: 'after'},
       );
-
+      console.log('result', result);
       if (!result._id) {
+        console.log('Progress not found while updateing');
         throw new NotFoundError('Progress not found');
       }
 
