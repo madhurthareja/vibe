@@ -226,7 +226,7 @@ class ProgressController {
   }
 
   @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/update')
-  @HttpCode(200)
+  @OnUndefined(200)
   async updateProgress(
     @Params() params: UpdateProgressParams,
     @Body() body: UpdateProgressBody,
