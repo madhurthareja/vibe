@@ -11,6 +11,7 @@ import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 import {
   IBlogDetails,
   ICourseVersion,
+  IProgress,
   IVideoDetails,
   IWatchTime,
 } from 'shared/interfaces/Models';
@@ -483,6 +484,30 @@ class ProgressService {
       throw new InternalServerError('Progress could not be updated');
     }
   }
+
+  // // Admin Level Endpoint
+  // async resetCourseProgress(
+  //   userId: string,
+  //   courseId: string,
+  //   courseVersionId: string,
+  // ): Promise<void> {
+  //   await this.verifyDetails(userId, courseId, courseVersionId);
+
+  //   // Get Course Version
+  //   const courseVersion = await this.courseRepo.readVersion(courseVersionId);
+
+  //   const newProgress: IProgress = await this.initializeProgress(
+  //     userId,
+  //     courseId,
+  //     courseVersionId,
+  //     courseVersion,
+
+  //   // Set progress
+
+  //   // if (!result) {
+  //   //   throw new InternalServerError('Progress could not be reset');
+  //   // }
+  // }
 }
 
 export {ProgressService};

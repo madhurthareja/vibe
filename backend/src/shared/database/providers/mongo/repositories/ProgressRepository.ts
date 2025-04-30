@@ -115,7 +115,6 @@ class ProgressRepository {
       );
     }
   }
-
   /**
    * Start watching an item
    * @param userId - The ID of the user
@@ -197,7 +196,6 @@ class ProgressRepository {
 
     return result;
   }
-
   async getWatchTimeById(id: string): Promise<IWatchTime | null> {
     await this.init();
     const result = await this.watchTimeCollection.findOne({
@@ -205,6 +203,36 @@ class ProgressRepository {
     });
 
     return result;
+  }
+
+  async findAndReplaceProgress(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    progress: Partial<IProgress>,
+  ): Promise<IProgress | null> {
+    await this.init();
+    try {
+      const result = await this.progressCollection.findOneAndUpdate(
+        {
+          userId: new ObjectId(userId),
+          courseId: new ObjectId(courseId),
+          courseVersionId: new ObjectId(courseVersionId),
+        },
+        progress,
+        {returnDocument: 'after'},
+      );
+
+      if (!result) {
+        throw new NotFoundError('Progress not found');
+      }
+
+      return result;
+    } catch (error) {
+      throw new UpdateError(
+        `Failed to update progress tracking: ${error.message}`,
+      );
+    }
   }
 }
 

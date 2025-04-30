@@ -24,13 +24,21 @@ import {ProgressRepository} from 'shared/database/providers/mongo/repositories/P
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from '../../../config/db';
-import {IWatchTime} from 'shared/interfaces/Models';
+import {IUser, IWatchTime} from 'shared/interfaces/Models';
+import {
+  CourseData,
+  createCourseWithModulesSectionsAndItems,
+} from './createCourse';
+import {createUser} from './createUser';
+import {createEnrollment} from './createEnrollment';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
   let mongoServer: MongoMemoryServer;
   let f: Fixture;
+  let user: IUser;
+  let courseData: CourseData;
 
   beforeAll(async () => {
     //Set env variables
@@ -81,7 +89,7 @@ describe('Progress Controller Integration Tests', () => {
 
   beforeEach(async () => {
     // TODO: Optionally reset database state before each test
-    f = await createFullEnrollmentFixture(app);
+    // f = await createFullEnrollmentFixture(app);
   }, 10000);
 
   // ------Tests for Create <ModuleName>------
@@ -511,5 +519,26 @@ describe('Progress Controller Integration Tests', () => {
       //expect currentItem to not be equal to itemId
       expect(progressResponse.body.currentModule).not.toBe(itemId);
     });
+  });
+
+  describe('Progress update Business Logic', () => {
+    it('logic test', async () => {
+      courseData = await createCourseWithModulesSectionsAndItems(app);
+      user = await createUser(app);
+      console.log('User:', user);
+
+      // Create enrollment
+      await createEnrollment(
+        app,
+        user.id,
+        courseData.courseId,
+        courseData.courseVersionId,
+        courseData.modules[0].moduleId,
+        courseData.modules[0].sections[0].sectionId,
+        courseData.modules[0].sections[0].items[0].itemId,
+      );
+      // console.dir(courseData, {depth: 10});
+      // console.log(JSON.stringify(courseData, null, 2));
+    }, 70000);
   });
 });
