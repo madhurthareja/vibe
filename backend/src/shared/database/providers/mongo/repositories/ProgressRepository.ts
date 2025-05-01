@@ -75,7 +75,6 @@ class ProgressRepository {
         {$set: progress},
         {returnDocument: 'after'},
       );
-      console.log('result', result);
       if (!result._id) {
         console.log('Progress not found while updateing');
         throw new NotFoundError('Progress not found');

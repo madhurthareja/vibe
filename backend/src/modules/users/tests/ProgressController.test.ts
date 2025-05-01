@@ -17,7 +17,7 @@ import {
   usersModuleOptions,
 } from '..';
 import {createFullEnrollmentFixture, Fixture} from './common';
-import {faker} from '@faker-js/faker/.';
+import {faker, ne} from '@faker-js/faker/.';
 import {isMongoId} from 'class-validator';
 import {ProgressService} from '../services/ProgressService';
 import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
@@ -33,6 +33,7 @@ import {createUser} from './createUser';
 import {createEnrollment} from './createEnrollment';
 import {startStopAndUpdateProgress} from './startStopAndUpdateProgress';
 import {verifyProgressInDatabase} from './verifyProgressInDatabase';
+import {start} from 'repl';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -87,6 +88,9 @@ describe('Progress Controller Integration Tests', () => {
   afterAll(async () => {
     // Stop the in-memory MongoDB server
     // await mongoServer.stop();
+    await Container.get<MongoDatabase>('Database').disconnect();
+    // Close all containers
+    Container.reset();
   });
 
   beforeEach(async () => {
@@ -524,6 +528,114 @@ describe('Progress Controller Integration Tests', () => {
   });
 
   describe('Progress Update', () => {
+    // it('should simulate student completing the course item by item, section by section, and module by module', async () => {
+    //   // Create a course with modules, sections, and items
+    //   courseData = await createCourseWithModulesSectionsAndItems(app);
+
+    //   // Create a user
+    //   user = await createUser(app);
+
+    //   // Create enrollment
+    //   await createEnrollment(
+    //     app,
+    //     user.id,
+    //     courseData.courseId,
+    //     courseData.courseVersionId,
+    //     courseData.modules[0].moduleId,
+    //     courseData.modules[0].sections[0].sectionId,
+    //     courseData.modules[0].sections[0].items[0].itemId,
+    //   );
+
+    //   // Start, Stop and Update Progress for each item in the course, section by section, module by module
+    //   for (const module of courseData.modules) {
+    //     for (const section of module.sections) {
+    //       for (const item of section.items) {
+    //         // Start progress for each item
+    //         const { startItemResponse, stopItemResponse, updateProgressResponse } =
+    //           await startStopAndUpdateProgress({
+    //             userId: user.id,
+    //             courseId: courseData.courseId,
+    //             courseVersionId: courseData.courseVersionId,
+    //             itemId: item.itemId,
+    //             moduleId: module.moduleId,
+    //             sectionId: section.sectionId,
+    //             app,
+    //           });
+
+    //         // Ensure progress is updated for the current item
+    //         await verifyProgressInDatabase({
+    //           userId: user.id,
+    //           courseId: courseData.courseId,
+    //           courseVersionId: courseData.courseVersionId,
+    //           expectedModuleId: module.moduleId,
+    //           expectedSectionId: section.sectionId,
+    //           expectedItemId: item.itemId,
+    //           expectedCompleted: false, // Not yet completed for item
+    //           app,
+    //         });
+
+    //         // After item completion, update the progress for the section
+    //         await updateProgress({
+    //           userId: user.id,
+    //           courseId: courseData.courseId,
+    //           courseVersionId: courseData.courseVersionId,
+    //           moduleId: module.moduleId,
+    //           sectionId: section.sectionId,
+    //           itemId: item.itemId,
+    //           app,
+    //         });
+
+    //         // Now, verify if the progress is correctly updated
+    //         await verifyProgressInDatabase({
+    //           userId: user.id,
+    //           courseId: courseData.courseId,
+    //           courseVersionId: courseData.courseVersionId,
+    //           expectedModuleId: module.moduleId,
+    //           expectedSectionId: section.sectionId,
+    //           expectedItemId: item.itemId,
+    //           expectedCompleted: true, // Mark item as completed
+    //           app,
+    //         });
+    //       }
+
+    //       // After completing all items in the section, verify the section completion
+    //       await verifyProgressInDatabase({
+    //         userId: user.id,
+    //         courseId: courseData.courseId,
+    //         courseVersionId: courseData.courseVersionId,
+    //         expectedModuleId: module.moduleId,
+    //         expectedSectionId: section.sectionId,
+    //         expectedItemId: section.items[section.items.length - 1].itemId, // Last item of the section
+    //         expectedCompleted: true, // The section should be completed after all items are done
+    //         app,
+    //       });
+    //     }
+
+    //     // After completing all sections in the module, verify the module completion
+    //     await verifyProgressInDatabase({
+    //       userId: user.id,
+    //       courseId: courseData.courseId,
+    //       courseVersionId: courseData.courseVersionId,
+    //       expectedModuleId: module.moduleId,
+    //       expectedSectionId: module.sections[module.sections.length - 1].sectionId, // Last section of the module
+    //       expectedItemId: module.sections[module.sections.length - 1].items[module.sections[module.sections.length - 1].items.length - 1].itemId, // Last item of the module
+    //       expectedCompleted: true, // The module should be completed after all sections are done
+    //       app,
+    //     });
+    //   }
+
+    //   // Finally, verify that the course is marked as completed
+    //   await verifyProgressInDatabase({
+    //     userId: user.id,
+    //     courseId: courseData.courseId,
+    //     courseVersionId: courseData.courseVersionId,
+    //     expectedModuleId: courseData.modules[courseData.modules.length - 1].moduleId, // Last module of the course
+    //     expectedSectionId: courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].sectionId, // Last section
+    //     expectedItemId: courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].items[courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].items.length - 1].itemId, // Last item
+    //     expectedCompleted: true, // Course is completed after all modules are done
+    //     app,
+    //   });
+    // });
     it('should reset progress correctly for a user in a course', async () => {
       // Create a course with modules, sections, and items
       courseData = await createCourseWithModulesSectionsAndItems(app);
@@ -554,9 +666,6 @@ describe('Progress Controller Integration Tests', () => {
           app,
         });
 
-      // Verify the progress in the database
-      console.log(courseData.modules[0].sections[0].items[0].itemId);
-      console.log(courseData.modules[0].sections[0].items[1].itemId);
       await verifyProgressInDatabase({
         userId: user.id,
         courseId: courseData.courseId,
@@ -576,24 +685,85 @@ describe('Progress Controller Integration Tests', () => {
       expect(resetResponse.status).toBe(200);
       expect(resetResponse.body).toBe('');
 
-      // Verify progress in the database
-      const findProgress = await request(app)
-        .get(
-          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}`,
-        )
-        .expect(200);
-
-      // Validate progress data
-      const progress = findProgress.body;
-      expect(progress).toMatchObject({
+      await verifyProgressInDatabase({
         userId: user.id,
         courseId: courseData.courseId,
         courseVersionId: courseData.courseVersionId,
-        currentModule: courseData.modules[0].moduleId,
-        currentSection: courseData.modules[0].sections[0].sectionId,
-        currentItem: courseData.modules[0].sections[0].items[0].itemId,
-        completed: false,
+        expectedModuleId: courseData.modules[0].moduleId,
+        expectedSectionId: courseData.modules[0].sections[0].sectionId,
+        expectedItemId: courseData.modules[0].sections[0].items[0].itemId,
+        expectedCompleted: false,
+        app,
       });
     }, 70000000);
+
+    it('should simulate student completing the course item by item, section by section, and module by module', async () => {
+      // Create a course with modules, sections, and items
+      courseData = await createCourseWithModulesSectionsAndItems(app);
+
+      // Create a user
+      user = await createUser(app);
+
+      // Create enrollment
+      await createEnrollment(
+        app,
+        user.id,
+        courseData.courseId,
+        courseData.courseVersionId,
+        courseData.modules[0].moduleId,
+        courseData.modules[0].sections[0].sectionId,
+        courseData.modules[0].sections[0].items[0].itemId,
+      );
+
+      const lastModuleIndex = courseData.modules.length - 1;
+      const lastSectionIndex = courseData.modules[0].sections.length - 1;
+      const lastItemIndex = courseData.modules[0].sections[0].items.length - 1;
+
+      // Start, Stop and Update Progress for each item in the course, section by section, module by module
+      for (
+        let moduleIndex = 0;
+        moduleIndex < courseData.modules.length;
+        moduleIndex++
+      ) {
+        const module = courseData.modules[moduleIndex];
+
+        for (
+          let sectionIndex = 0;
+          sectionIndex < module.sections.length;
+          sectionIndex++
+        ) {
+          const section = module.sections[sectionIndex];
+
+          for (
+            let itemIndex = 0;
+            itemIndex < section.items.length;
+            itemIndex++
+          ) {
+            const item = section.items[itemIndex];
+
+            await verifyProgressInDatabase({
+              userId: user.id,
+              courseId: courseData.courseId,
+              courseVersionId: courseData.courseVersionId,
+              expectedModuleId: module.moduleId,
+              expectedSectionId: section.sectionId,
+              expectedItemId: item.itemId,
+              expectedCompleted: false, // Not yet completed for item
+              app,
+            });
+
+            await startStopAndUpdateProgress({
+              userId: user.id,
+              courseId: courseData.courseId,
+              courseVersionId: courseData.courseVersionId,
+              itemId: item.itemId,
+              moduleId: module.moduleId,
+              sectionId: section.sectionId,
+              app,
+            });
+          }
+        }
+      }
+    }, 10000000);
   });
 });

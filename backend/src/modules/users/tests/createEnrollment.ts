@@ -1,5 +1,6 @@
 import request from 'supertest';
 import Express from 'express';
+import {r} from '@faker-js/faker/dist/airline-BUL6NtOJ';
 
 export interface EnrollmentParams {
   userId: string;
@@ -16,48 +17,28 @@ export async function createEnrollment(
   firstSectionId: string,
   firstItemId: string,
 ) {
-  const enrollmentParams: EnrollmentParams = {
-    userId: userId,
-    courseId: courseId,
-    courseVersionId: courseVersionId,
+  // Perform the request, and assert status
+  const response = await request(app)
+    .post(
+      `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}`,
+    )
+    .expect(200);
+
+  // Build up the expected “shape” of the response
+  const expectedShape = {
+    enrollment: {
+      userId,
+      courseId,
+      courseVersionId,
+    },
+    progress: {
+      currentModule: firstModuleId,
+      currentSection: firstSectionId,
+      currentItem: firstItemId,
+    },
   };
 
-  // Perform the POST request to enroll the user
-  const enrollmentResponse = await request(app).post(
-    `/users/${enrollmentParams.userId}/enrollments/courses/${enrollmentParams.courseId}/versions/${enrollmentParams.courseVersionId}`,
-  );
-
-  // Ensure the response status is 200 and check the properties
-  expect(enrollmentResponse.status).toBe(200);
-  expect(enrollmentResponse.body).toHaveProperty('enrollment');
-  expect(enrollmentResponse.body).toHaveProperty('progress');
-
-  // Check properties for enrollment
-  expect(enrollmentResponse.body.enrollment).toHaveProperty('userId');
-  expect(enrollmentResponse.body.enrollment.userId).toBe(
-    enrollmentParams.userId,
-  );
-
-  expect(enrollmentResponse.body.enrollment).toHaveProperty('courseId');
-  expect(enrollmentResponse.body.enrollment.courseId).toBe(
-    enrollmentParams.courseId,
-  );
-
-  expect(enrollmentResponse.body.enrollment).toHaveProperty('courseVersionId');
-  expect(enrollmentResponse.body.enrollment.courseVersionId).toBe(
-    enrollmentParams.courseVersionId,
-  );
-
-  // Check properties for progress
-  expect(enrollmentResponse.body.progress).toHaveProperty('currentModule');
-  expect(enrollmentResponse.body.progress.currentModule).toBe(firstModuleId); // Replace with actual `moduleId`
-
-  expect(enrollmentResponse.body.progress).toHaveProperty('currentSection');
-  expect(enrollmentResponse.body.progress.currentSection).toBe(firstSectionId); // Replace with actual `sectionId`
-
-  expect(enrollmentResponse.body.progress).toHaveProperty('currentItem');
-  expect(enrollmentResponse.body.progress.currentItem).toBe(firstItemId); // Replace with actual `itemId`
-
-  // Return the enrollment response to use in the tests if needed
-  return enrollmentResponse.body;
+  // assert that the response body contains at least those fields with those exact values
+  expect(response.body).toMatchObject(expectedShape);
+  return response.body; // Return the response body for further assertions if needed
 }

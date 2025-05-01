@@ -110,7 +110,7 @@ async function createCourseWithModulesSectionsAndItems(
         sectionRes.body.version.modules[i].sections[j].sectionId;
 
       // Create 3 Items for the Section
-      for (let k = 0; k < 2; k++) {
+      for (let k = 0; k < 3; k++) {
         const itemData: ItemData = {
           name: faker.commerce.productName(),
           description: faker.commerce.productDescription(),
