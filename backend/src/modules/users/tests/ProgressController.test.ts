@@ -31,6 +31,8 @@ import {
 } from './createCourse';
 import {createUser} from './createUser';
 import {createEnrollment} from './createEnrollment';
+import {startStopAndUpdateProgress} from './startStopAndUpdateProgress';
+import {verifyProgressInDatabase} from './verifyProgressInDatabase';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -521,11 +523,13 @@ describe('Progress Controller Integration Tests', () => {
     });
   });
 
-  describe('Progress update Business Logic', () => {
-    it('logic test', async () => {
+  describe('Progress Update', () => {
+    it('should reset progress correctly for a user in a course', async () => {
+      // Create a course with modules, sections, and items
       courseData = await createCourseWithModulesSectionsAndItems(app);
+
+      // Create a user
       user = await createUser(app);
-      console.log('User:', user);
 
       // Create enrollment
       await createEnrollment(
@@ -537,8 +541,59 @@ describe('Progress Controller Integration Tests', () => {
         courseData.modules[0].sections[0].sectionId,
         courseData.modules[0].sections[0].items[0].itemId,
       );
-      // console.dir(courseData, {depth: 10});
-      // console.log(JSON.stringify(courseData, null, 2));
-    }, 70000);
+
+      // Start Stop and Update Progress
+      const {startItemResponse, stopItemResponse, updateProgressResponse} =
+        await startStopAndUpdateProgress({
+          userId: user.id,
+          courseId: courseData.courseId,
+          courseVersionId: courseData.courseVersionId,
+          itemId: courseData.modules[0].sections[0].items[0].itemId,
+          moduleId: courseData.modules[0].moduleId,
+          sectionId: courseData.modules[0].sections[0].sectionId,
+          app,
+        });
+
+      // Verify the progress in the database
+      console.log(courseData.modules[0].sections[0].items[0].itemId);
+      console.log(courseData.modules[0].sections[0].items[1].itemId);
+      await verifyProgressInDatabase({
+        userId: user.id,
+        courseId: courseData.courseId,
+        courseVersionId: courseData.courseVersionId,
+        expectedModuleId: courseData.modules[0].moduleId,
+        expectedSectionId: courseData.modules[0].sections[0].sectionId,
+        expectedItemId: courseData.modules[0].sections[0].items[1].itemId,
+        expectedCompleted: false,
+        app,
+      });
+
+      // Reset the progress
+      const resetResponse = await request(app).patch(
+        `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/reset`,
+      );
+
+      expect(resetResponse.status).toBe(200);
+      expect(resetResponse.body).toBe('');
+
+      // Verify progress in the database
+      const findProgress = await request(app)
+        .get(
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}`,
+        )
+        .expect(200);
+
+      // Validate progress data
+      const progress = findProgress.body;
+      expect(progress).toMatchObject({
+        userId: user.id,
+        courseId: courseData.courseId,
+        courseVersionId: courseData.courseVersionId,
+        currentModule: courseData.modules[0].moduleId,
+        currentSection: courseData.modules[0].sections[0].sectionId,
+        currentItem: courseData.modules[0].sections[0].items[0].itemId,
+        completed: false,
+      });
+    }, 70000000);
   });
 });

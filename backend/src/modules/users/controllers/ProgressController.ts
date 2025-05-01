@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import {
+  Authorized,
   Body,
   Get,
   HttpCode,
@@ -154,6 +155,23 @@ export class UpdateProgressParams {
   courseVersionId: string;
 }
 
+export class ResetCourseProgressParams {
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsMongoId()
+  courseVersionId: string;
+}
+
 @JsonController('/users', {transformResponse: true})
 @Service()
 /**
@@ -242,6 +260,21 @@ class ProgressController {
       sectionId,
       itemId,
       watchItemId,
+    );
+  }
+
+  @Authorized(['admin', 'teacher'])
+  @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/reset')
+  @OnUndefined(200)
+  async resetCourseProgress(
+    @Params() params: ResetCourseProgressParams,
+  ): Promise<void> {
+    const {userId, courseId, courseVersionId} = params;
+
+    await this.progressService.resetCourseProgress(
+      userId,
+      courseId,
+      courseVersionId,
     );
   }
 }

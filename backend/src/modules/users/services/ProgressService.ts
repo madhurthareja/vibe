@@ -486,28 +486,39 @@ class ProgressService {
   }
 
   // // Admin Level Endpoint
-  // async resetCourseProgress(
-  //   userId: string,
-  //   courseId: string,
-  //   courseVersionId: string,
-  // ): Promise<void> {
-  //   await this.verifyDetails(userId, courseId, courseVersionId);
+  async resetCourseProgress(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ): Promise<void> {
+    await this.verifyDetails(userId, courseId, courseVersionId);
 
-  //   // Get Course Version
-  //   const courseVersion = await this.courseRepo.readVersion(courseVersionId);
+    // Get Course Version
+    const courseVersion = await this.courseRepo.readVersion(courseVersionId);
 
-  //   const newProgress: IProgress = await this.initializeProgress(
-  //     userId,
-  //     courseId,
-  //     courseVersionId,
-  //     courseVersion,
+    const updatedProgress: IProgress = await this.initializeProgress(
+      userId,
+      courseId,
+      courseVersionId,
+      courseVersion,
+    );
 
-  //   // Set progress
-
-  //   // if (!result) {
-  //   //   throw new InternalServerError('Progress could not be reset');
-  //   // }
-  // }
+    // Set progress
+    const result = await this.progressRepository.findAndReplaceProgress(
+      userId,
+      courseId,
+      courseVersionId,
+      {
+        currentModule: updatedProgress.currentModule,
+        currentSection: updatedProgress.currentSection,
+        currentItem: updatedProgress.currentItem,
+        completed: false,
+      },
+    );
+    if (!result) {
+      throw new InternalServerError('Progress could not be reset');
+    }
+  }
 }
 
 export {ProgressService};

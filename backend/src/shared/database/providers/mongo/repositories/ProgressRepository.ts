@@ -219,7 +219,7 @@ class ProgressRepository {
           courseId: new ObjectId(courseId),
           courseVersionId: new ObjectId(courseVersionId),
         },
-        progress,
+        {$set: progress},
         {returnDocument: 'after'},
       );
 

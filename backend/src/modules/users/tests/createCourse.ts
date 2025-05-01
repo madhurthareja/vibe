@@ -133,7 +133,7 @@ async function createCourseWithModulesSectionsAndItems(
           .expect(201);
         //   console.log(itemRes.body);
         //   .expect(201);
-        itemData.itemId = itemRes.body.itemsGroup.items[0].itemId;
+        itemData.itemId = itemRes.body.itemsGroup.items[k].itemId;
 
         sectionData.items.push(itemData);
       }
