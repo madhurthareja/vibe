@@ -33,7 +33,6 @@ import {createUser} from './createUser';
 import {createEnrollment} from './createEnrollment';
 import {startStopAndUpdateProgress} from './startStopAndUpdateProgress';
 import {verifyProgressInDatabase} from './verifyProgressInDatabase';
-import {start} from 'repl';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -83,7 +82,25 @@ describe('Progress Controller Integration Tests', () => {
     };
 
     app = useExpressServer(appInstance, options);
-  }, 10000);
+
+    courseData = await createCourseWithModulesSectionsAndItems(2, 2, 3, app);
+
+    // Create a user
+    user = await createUser(app);
+
+    // Create enrollment
+    await createEnrollment(
+      app,
+      user.id,
+      courseData.courseId,
+      courseData.courseVersionId,
+      courseData.modules[0].moduleId,
+      courseData.modules[0].sections[0].sectionId,
+      courseData.modules[0].sections[0].items[0].itemId,
+    );
+
+    jest.setTimeout(30000);
+  }, 900000);
 
   afterAll(async () => {
     // Stop the in-memory MongoDB server
@@ -96,48 +113,28 @@ describe('Progress Controller Integration Tests', () => {
   beforeEach(async () => {
     // TODO: Optionally reset database state before each test
     // f = await createFullEnrollmentFixture(app);
+    // Create a course with modules, sections, and items
   }, 10000);
 
   // ------Tests for Create <ModuleName>------
   describe('Fetch Progress Data', () => {
     it('should fetch the progress', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
-
-      // Find progress of the user
-      const progressResponse = await request(app)
-        .get(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}`,
-        )
-        .expect(200);
-
-      // Expect the response to contain the progress data
-      expect(progressResponse.body).toHaveProperty('userId');
-      expect(progressResponse.body.userId).toBe(userId);
-
-      expect(progressResponse.body).toHaveProperty('courseId');
-      expect(progressResponse.body.courseId).toBe(courseId);
-
-      expect(progressResponse.body).toHaveProperty('courseVersionId');
-      expect(progressResponse.body.courseVersionId).toBe(courseVersionId);
-
-      expect(progressResponse.body).toHaveProperty('currentModule');
-      expect(progressResponse.body.currentModule).toBe(moduleId);
-
-      expect(progressResponse.body).toHaveProperty('currentSection');
-      expect(progressResponse.body.currentSection).toBe(sectionId);
-
-      expect(progressResponse.body).toHaveProperty('currentItem');
-      expect(progressResponse.body.currentItem).toBe(itemId);
-
-      expect(progressResponse.body).toHaveProperty('completed');
-      expect(progressResponse.body.completed).toBe(false);
+      await verifyProgressInDatabase({
+        userId: user.id,
+        courseId: courseData.courseId,
+        courseVersionId: courseData.courseVersionId,
+        expectedModuleId: courseData.modules[0].moduleId,
+        expectedSectionId: courseData.modules[0].sections[0].sectionId,
+        expectedItemId: courseData.modules[0].sections[0].items[0].itemId,
+        expectedCompleted: false,
+        app,
+      });
     });
 
     it('should return 400 if userId is invalid', async () => {
       const invalidUserId = 'invalidUserId';
-      const courseId = f.courseId;
-      const courseVersionId = f.courseVersionId;
+      const courseId = courseData.courseId;
+      const courseVersionId = courseData.courseVersionId;
 
       const response = await request(app)
         .get(
@@ -152,9 +149,9 @@ describe('Progress Controller Integration Tests', () => {
     }, 10000);
 
     it('should return 400 if courseId is invalid', async () => {
-      const userId = f.userId;
+      const userId = user.id;
       const invalidCourseId = 'invalidCourseId';
-      const courseVersionId = f.courseVersionId;
+      const courseVersionId = courseData.courseVersionId;
 
       const response = await request(app)
         .get(
@@ -169,8 +166,8 @@ describe('Progress Controller Integration Tests', () => {
     });
 
     it('should return 400 if courseVersionId is invalid', async () => {
-      const userId = f.userId;
-      const courseId = f.courseId;
+      const userId = user.id;
+      const courseId = courseData.courseId;
       const invalidCourseVersionId = 'invalidCourseVersionId';
 
       const response = await request(app)
@@ -185,7 +182,7 @@ describe('Progress Controller Integration Tests', () => {
     });
 
     it('should return 404 if progress not found when courseId and courseVersionId are fake', async () => {
-      const userId = f.userId;
+      const userId = user.id;
       const courseId = faker.database.mongodbObjectId();
       const courseVersionId = faker.database.mongodbObjectId();
 
@@ -203,8 +200,8 @@ describe('Progress Controller Integration Tests', () => {
 
     it('should return 404 if progress not found when userId is fake', async () => {
       const userId = faker.database.mongodbObjectId();
-      const courseId = f.courseId;
-      const courseVersionId = f.courseVersionId;
+      const courseId = courseData.courseId;
+      const courseVersionId = courseData.courseVersionId;
 
       const response = await request(app)
         .get(
@@ -240,17 +237,15 @@ describe('Progress Controller Integration Tests', () => {
 
   describe('Start Item', () => {
     it('should start the item tracking for recording progress', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
       const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
       };
       // Start the item progress
       const startItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/start`,
         )
         .send(startItemBody)
         .expect(200);
@@ -264,35 +259,30 @@ describe('Progress Controller Integration Tests', () => {
 
   describe('Stop Item', () => {
     it('should stop the item tracking for recording progress', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
       const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
       };
       // Start the item progress
       const startItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/start`,
         )
         .send(startItemBody)
         .expect(200);
 
-      //log the response
-      console.log('Start Item Response:', startItemResponse.body);
-
       // Stop the item progress
       const stopItemBody: StopItemBody = {
-        sectionId,
-        moduleId,
-        itemId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        moduleId: courseData.modules[0].moduleId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
       const stopItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/stop`,
         )
         .send(stopItemBody)
         .expect(200);
@@ -300,47 +290,57 @@ describe('Progress Controller Integration Tests', () => {
   });
 
   describe('Update Progress', () => {
+    beforeEach(async () => {
+      courseData = await createCourseWithModulesSectionsAndItems(2, 2, 3, app);
+
+      // Create a user
+      user = await createUser(app);
+
+      // Create enrollment
+      await createEnrollment(
+        app,
+        user.id,
+        courseData.courseId,
+        courseData.courseVersionId,
+        courseData.modules[0].moduleId,
+        courseData.modules[0].sections[0].sectionId,
+        courseData.modules[0].sections[0].items[0].itemId,
+      );
+    }, 50000);
+
     it('should update the progress, if isValidWatchTime is true', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
       // Start the item progress
       const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
       };
       const startItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/start`,
         )
         .send(startItemBody)
         .expect(200);
 
-      //log the response
-      console.log('Start Item Response:', startItemResponse.body);
-
       // Stop the item progress
       const stopItemBody: StopItemBody = {
-        sectionId,
-        moduleId,
-        itemId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        moduleId: courseData.modules[0].moduleId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
       const stopItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/stop`,
         )
         .send(stopItemBody)
         .expect(200);
-      //log the response
-
-      console.log('Stop Item Response:', stopItemResponse.status);
 
       // Update the progress
       const updateProgressBody: UpdateProgressBody = {
-        moduleId: moduleId,
-        sectionId: sectionId,
-        itemId: itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
@@ -350,57 +350,46 @@ describe('Progress Controller Integration Tests', () => {
 
       const updateProgressResponse = await request(app)
         .patch(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/update`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/update`,
         )
         .send(updateProgressBody)
         .expect(200);
-    });
+    }, 50000);
     it('should not update the progress, if isValidWatchTime is false', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
       // Start the item progress
       const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
       };
       const startItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/start`,
         )
         .send(startItemBody);
-
-      console.log('Start Item Response:', startItemResponse.body);
-
-      //log the response
-      console.log('Start Item Response:', startItemResponse.body);
 
       // Stop the item progress
 
       const stopItemBody: StopItemBody = {
-        sectionId,
-        moduleId,
-        itemId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        moduleId: courseData.modules[0].moduleId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
       const stopItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/stop`,
         )
         .send(stopItemBody)
         .expect(200);
 
-      //log the response
-
-      console.log('Stop Item Response:', stopItemResponse.status);
-
       // Update the progress
 
       const updateProgressBody: UpdateProgressBody = {
-        moduleId: moduleId,
-        sectionId: sectionId,
-        itemId: itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
@@ -410,11 +399,10 @@ describe('Progress Controller Integration Tests', () => {
 
       const updateProgressResponse = await request(app)
         .patch(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/update`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/update`,
         )
         .send(updateProgressBody);
 
-      console.log('Update Progress Response:', updateProgressResponse.body);
       expect(updateProgressResponse.status).toBe(400);
       expect(updateProgressResponse.body).toHaveProperty('name');
       expect(updateProgressResponse.body.name).toBe('BadRequestError');
@@ -422,53 +410,41 @@ describe('Progress Controller Integration Tests', () => {
       expect(updateProgressResponse.body.message).toBe(
         'Watch time is not valid, the user did not watch the item long enough',
       );
-    });
+    }, 50000);
     it('should update the progress, if watch time is actually greater than or equal to 0.5 times video length', async () => {
-      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
-        f;
       // Start the item progress
       const startItemBody: StartItemBody = {
-        itemId,
-        moduleId,
-        sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
       };
       const startItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/start`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/start`,
         )
-        .send(startItemBody);
-
-      console.log('Start Item Response:', startItemResponse.body);
-
-      //log the response
-      console.log('Start Item Response:', startItemResponse.body);
-
+        .send(startItemBody)
+        .expect(200);
       // Stop the item progress
 
       const stopItemBody: StopItemBody = {
-        sectionId,
-        moduleId,
-        itemId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        moduleId: courseData.modules[0].moduleId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
       const stopItemResponse = await request(app)
         .post(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/stop`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/stop`,
         )
         .send(stopItemBody)
         .expect(200);
 
-      //log the response
-
-      console.log('Stop Item Response:', stopItemResponse.status);
-
       // Update the progress
-
       const updateProgressBody: UpdateProgressBody = {
-        moduleId: moduleId,
-        sectionId: sectionId,
-        itemId: itemId,
+        moduleId: courseData.modules[0].moduleId,
+        sectionId: courseData.modules[0].sections[0].sectionId,
+        itemId: courseData.modules[0].sections[0].items[0].itemId,
         watchItemId: startItemResponse.body.watchItemId,
       };
 
@@ -483,7 +459,6 @@ describe('Progress Controller Integration Tests', () => {
         .mockImplementation(async function (id: string) {
           // 1. Call the real implementation:
           const watchTime: IWatchTime = await originalGet.call(this, id);
-          console.log('🕵️‍♀️ original getWatchTimeById returned:', watchTime);
 
           if (watchTime) {
             // 2. Compute new endTime = startTime + 10min
@@ -492,8 +467,6 @@ describe('Progress Controller Integration Tests', () => {
             );
             // 3. Either mutate or clone—here we mutate:
             watchTime.endTime = newEnd;
-
-            console.log('🕵️‍♀️ modified watchTime with +10min:', watchTime);
           }
 
           // 4. Return the modified document:
@@ -502,7 +475,7 @@ describe('Progress Controller Integration Tests', () => {
 
       const updateProgressResponse = await request(app)
         .patch(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}/update`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}/update`,
         )
         .send(updateProgressBody);
       expect(updateProgressResponse.status).toBe(200);
@@ -510,132 +483,28 @@ describe('Progress Controller Integration Tests', () => {
       // fetch the progress of the user
       const progressResponse = await request(app)
         .get(
-          `/users/${userId}/progress/courses/${courseId}/versions/${courseVersionId}`,
+          `/users/${user.id}/progress/courses/${courseData.courseId}/versions/${courseData.courseVersionId}`,
         )
         .expect(200);
 
       // Expect the response to contain the progress data
       expect(progressResponse.body).toHaveProperty('userId');
-      expect(progressResponse.body.userId).toBe(userId);
+      expect(progressResponse.body.userId).toBe(user.id);
       expect(progressResponse.body).toHaveProperty('courseId');
-      expect(progressResponse.body.courseId).toBe(courseId);
+      expect(progressResponse.body.courseId).toBe(courseData.courseId);
       expect(progressResponse.body).toHaveProperty('courseVersionId');
-      expect(progressResponse.body.courseVersionId).toBe(courseVersionId);
+      expect(progressResponse.body.courseVersionId).toBe(
+        courseData.courseVersionId,
+      );
       expect(progressResponse.body).toHaveProperty('currentModule');
       //expect currentItem to not be equal to itemId
-      expect(progressResponse.body.currentModule).not.toBe(itemId);
-    });
+      expect(progressResponse.body.currentModule).not.toBe(
+        courseData.modules[0].sections[0].items[0].itemId,
+      );
+    }, 50000);
   });
 
-  describe('Progress Update', () => {
-    // it('should simulate student completing the course item by item, section by section, and module by module', async () => {
-    //   // Create a course with modules, sections, and items
-    //   courseData = await createCourseWithModulesSectionsAndItems(app);
-
-    //   // Create a user
-    //   user = await createUser(app);
-
-    //   // Create enrollment
-    //   await createEnrollment(
-    //     app,
-    //     user.id,
-    //     courseData.courseId,
-    //     courseData.courseVersionId,
-    //     courseData.modules[0].moduleId,
-    //     courseData.modules[0].sections[0].sectionId,
-    //     courseData.modules[0].sections[0].items[0].itemId,
-    //   );
-
-    //   // Start, Stop and Update Progress for each item in the course, section by section, module by module
-    //   for (const module of courseData.modules) {
-    //     for (const section of module.sections) {
-    //       for (const item of section.items) {
-    //         // Start progress for each item
-    //         const { startItemResponse, stopItemResponse, updateProgressResponse } =
-    //           await startStopAndUpdateProgress({
-    //             userId: user.id,
-    //             courseId: courseData.courseId,
-    //             courseVersionId: courseData.courseVersionId,
-    //             itemId: item.itemId,
-    //             moduleId: module.moduleId,
-    //             sectionId: section.sectionId,
-    //             app,
-    //           });
-
-    //         // Ensure progress is updated for the current item
-    //         await verifyProgressInDatabase({
-    //           userId: user.id,
-    //           courseId: courseData.courseId,
-    //           courseVersionId: courseData.courseVersionId,
-    //           expectedModuleId: module.moduleId,
-    //           expectedSectionId: section.sectionId,
-    //           expectedItemId: item.itemId,
-    //           expectedCompleted: false, // Not yet completed for item
-    //           app,
-    //         });
-
-    //         // After item completion, update the progress for the section
-    //         await updateProgress({
-    //           userId: user.id,
-    //           courseId: courseData.courseId,
-    //           courseVersionId: courseData.courseVersionId,
-    //           moduleId: module.moduleId,
-    //           sectionId: section.sectionId,
-    //           itemId: item.itemId,
-    //           app,
-    //         });
-
-    //         // Now, verify if the progress is correctly updated
-    //         await verifyProgressInDatabase({
-    //           userId: user.id,
-    //           courseId: courseData.courseId,
-    //           courseVersionId: courseData.courseVersionId,
-    //           expectedModuleId: module.moduleId,
-    //           expectedSectionId: section.sectionId,
-    //           expectedItemId: item.itemId,
-    //           expectedCompleted: true, // Mark item as completed
-    //           app,
-    //         });
-    //       }
-
-    //       // After completing all items in the section, verify the section completion
-    //       await verifyProgressInDatabase({
-    //         userId: user.id,
-    //         courseId: courseData.courseId,
-    //         courseVersionId: courseData.courseVersionId,
-    //         expectedModuleId: module.moduleId,
-    //         expectedSectionId: section.sectionId,
-    //         expectedItemId: section.items[section.items.length - 1].itemId, // Last item of the section
-    //         expectedCompleted: true, // The section should be completed after all items are done
-    //         app,
-    //       });
-    //     }
-
-    //     // After completing all sections in the module, verify the module completion
-    //     await verifyProgressInDatabase({
-    //       userId: user.id,
-    //       courseId: courseData.courseId,
-    //       courseVersionId: courseData.courseVersionId,
-    //       expectedModuleId: module.moduleId,
-    //       expectedSectionId: module.sections[module.sections.length - 1].sectionId, // Last section of the module
-    //       expectedItemId: module.sections[module.sections.length - 1].items[module.sections[module.sections.length - 1].items.length - 1].itemId, // Last item of the module
-    //       expectedCompleted: true, // The module should be completed after all sections are done
-    //       app,
-    //     });
-    //   }
-
-    //   // Finally, verify that the course is marked as completed
-    //   await verifyProgressInDatabase({
-    //     userId: user.id,
-    //     courseId: courseData.courseId,
-    //     courseVersionId: courseData.courseVersionId,
-    //     expectedModuleId: courseData.modules[courseData.modules.length - 1].moduleId, // Last module of the course
-    //     expectedSectionId: courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].sectionId, // Last section
-    //     expectedItemId: courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].items[courseData.modules[courseData.modules.length - 1].sections[courseData.modules[courseData.modules.length - 1].sections.length - 1].items.length - 1].itemId, // Last item
-    //     expectedCompleted: true, // Course is completed after all modules are done
-    //     app,
-    //   });
-    // });
+  describe('Reset Progress', () => {
     it('should reset progress correctly for a user in a course', async () => {
       // Create a course with modules, sections, and items
       courseData = await createCourseWithModulesSectionsAndItems(3, 3, 3, app);
@@ -695,11 +564,13 @@ describe('Progress Controller Integration Tests', () => {
         expectedCompleted: false,
         app,
       });
-    }, 70000000);
+    }, 100000);
+  });
 
+  describe('Student Progress Simulation', () => {
     it('should simulate student completing the course item by item, section by section, and module by module', async () => {
       // Create a course with modules, sections, and items
-      courseData = await createCourseWithModulesSectionsAndItems(2, 2, 3, app);
+      courseData = await createCourseWithModulesSectionsAndItems(3, 2, 3, app);
 
       // Create a user
       user = await createUser(app);
@@ -777,6 +648,6 @@ describe('Progress Controller Integration Tests', () => {
       console.log(
         'Course completed successfully! All items, sections, and modules are done.',
       );
-    }, 10000000);
+    }, 100000);
   });
 });
