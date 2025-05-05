@@ -643,9 +643,6 @@ describe('Progress Controller Integration Tests', () => {
         expectedCompleted: true, // Course is completed after all modules are done
         app,
       });
-      console.log(
-        'Course completed successfully! All items, sections, and modules are done.',
-      );
     }, 100000);
   });
 });
