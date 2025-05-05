@@ -203,13 +203,13 @@ class ProgressService {
       isLastItem = true;
     }
 
-    // If isLastItem, isLastSection and isLastModule is true, set completed to true
+    // Handle when the item is the last item in the last section of the last module
     if (isLastItem && isLastSection && isLastModule) {
       completed = true;
     }
 
-    // If isLastItem and isLastSection is true, get next module
-    if (isLastItem && isLastSection) {
+    // Handle when the item is the last item in the last section but not the last module
+    if (isLastItem && isLastSection && !isLastModule) {
       // Get index of the current module
       const currentModuleIndex = sortedModules.findIndex(
         module => module.moduleId === moduleId,
@@ -233,8 +233,8 @@ class ProgressService {
       currentItem = firstItem.itemId.toString();
     }
 
-    // If isLastItem is true, get next section
-    if (isLastItem) {
+    // Handle when the item is the last item in the section but not the last section and not the last module
+    if (isLastItem && !isLastSection && !isLastModule) {
       // Get index of the current section
       const currentSectionIndex = sortedSections?.findIndex(
         section => section.sectionId === sectionId,
@@ -253,8 +253,57 @@ class ProgressService {
       currentItem = firstItem.itemId.toString();
     }
 
-    // If isLastItem is not true, get next item and set currentItem to next itemId
-    if (!isLastItem) {
+    // Handle when none of the item, the section, or the module is last.
+    if (!isLastItem && !isLastSection && !isLastModule) {
+      // Get index of the current item
+      const currentItemIndex = sortedItems.findIndex(
+        item => item.itemId === itemId,
+      );
+      // Get next itemId
+      const nextItem = sortedItems[currentItemIndex + 1];
+      currentItem = nextItem.itemId.toString();
+    }
+
+    if (isLastItem && !isLastSection && isLastModule) {
+      // Get index of the current section
+      const currentSectionIndex = sortedSections?.findIndex(
+        section => section.sectionId === sectionId,
+      );
+      // Get next sectionId
+      const nextSection = sortedSections?.[currentSectionIndex + 1];
+      currentSection = nextSection?.sectionId.toString();
+
+      // Get first itemId in the next section
+      const itemsGroup = await this.courseRepo.readItemsGroup(
+        nextSection?.itemsGroupId.toString(),
+      );
+      const firstItem = itemsGroup.items.sort((a, b) =>
+        a.order.localeCompare(b.order),
+      )[0];
+      currentItem = firstItem.itemId.toString();
+    }
+
+    if (!isLastItem && !isLastSection && isLastModule) {
+      // Get index of the current item
+      const currentItemIndex = sortedItems.findIndex(
+        item => item.itemId === itemId,
+      );
+      // Get next itemId
+      const nextItem = sortedItems[currentItemIndex + 1];
+      currentItem = nextItem.itemId.toString();
+    }
+
+    if (!isLastItem && isLastSection && isLastModule) {
+      // Get index of the current item
+      const currentItemIndex = sortedItems.findIndex(
+        item => item.itemId === itemId,
+      );
+      // Get next itemId
+      const nextItem = sortedItems[currentItemIndex + 1];
+      currentItem = nextItem.itemId.toString();
+    }
+
+    if (!isLastItem && isLastSection && !isLastModule) {
       // Get index of the current item
       const currentItemIndex = sortedItems.findIndex(
         item => item.itemId === itemId,
@@ -444,6 +493,9 @@ class ProgressService {
 
     // Check if the watch time is greater than the item duration
     const item = await this.courseRepo.readItem(courseVersionId, itemId);
+    if (!item) {
+      throw new NotFoundError('Item not found in Course Version');
+    }
     if (item.type !== 'VIDEO' && item.type !== 'BLOG') {
       // TODO: Handle other item types
       throw new BadRequestError('Item type is not supported');

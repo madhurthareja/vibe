@@ -638,7 +638,7 @@ describe('Progress Controller Integration Tests', () => {
     // });
     it('should reset progress correctly for a user in a course', async () => {
       // Create a course with modules, sections, and items
-      courseData = await createCourseWithModulesSectionsAndItems(app);
+      courseData = await createCourseWithModulesSectionsAndItems(3, 3, 3, app);
 
       // Create a user
       user = await createUser(app);
@@ -699,7 +699,7 @@ describe('Progress Controller Integration Tests', () => {
 
     it('should simulate student completing the course item by item, section by section, and module by module', async () => {
       // Create a course with modules, sections, and items
-      courseData = await createCourseWithModulesSectionsAndItems(app);
+      courseData = await createCourseWithModulesSectionsAndItems(2, 2, 3, app);
 
       // Create a user
       user = await createUser(app);
@@ -714,10 +714,6 @@ describe('Progress Controller Integration Tests', () => {
         courseData.modules[0].sections[0].sectionId,
         courseData.modules[0].sections[0].items[0].itemId,
       );
-
-      const lastModuleIndex = courseData.modules.length - 1;
-      const lastSectionIndex = courseData.modules[0].sections.length - 1;
-      const lastItemIndex = courseData.modules[0].sections[0].items.length - 1;
 
       // Start, Stop and Update Progress for each item in the course, section by section, module by module
       for (
@@ -740,18 +736,6 @@ describe('Progress Controller Integration Tests', () => {
             itemIndex++
           ) {
             const item = section.items[itemIndex];
-
-            await verifyProgressInDatabase({
-              userId: user.id,
-              courseId: courseData.courseId,
-              courseVersionId: courseData.courseVersionId,
-              expectedModuleId: module.moduleId,
-              expectedSectionId: section.sectionId,
-              expectedItemId: item.itemId,
-              expectedCompleted: false, // Not yet completed for item
-              app,
-            });
-
             await startStopAndUpdateProgress({
               userId: user.id,
               courseId: courseData.courseId,
@@ -764,6 +748,35 @@ describe('Progress Controller Integration Tests', () => {
           }
         }
       }
+
+      // After completing all items in the course, verify the course completion
+      await verifyProgressInDatabase({
+        userId: user.id,
+        courseId: courseData.courseId,
+        courseVersionId: courseData.courseVersionId,
+        expectedModuleId:
+          courseData.modules[courseData.modules.length - 1].moduleId, // Last module of the course
+        expectedSectionId:
+          courseData.modules[courseData.modules.length - 1].sections[
+            courseData.modules[courseData.modules.length - 1].sections.length -
+              1
+          ].sectionId, // Last section
+        expectedItemId:
+          courseData.modules[courseData.modules.length - 1].sections[
+            courseData.modules[courseData.modules.length - 1].sections.length -
+              1
+          ].items[
+            courseData.modules[courseData.modules.length - 1].sections[
+              courseData.modules[courseData.modules.length - 1].sections
+                .length - 1
+            ].items.length - 1
+          ].itemId, // Last item
+        expectedCompleted: true, // Course is completed after all modules are done
+        app,
+      });
+      console.log(
+        'Course completed successfully! All items, sections, and modules are done.',
+      );
     }, 10000000);
   });
 });

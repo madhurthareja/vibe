@@ -40,6 +40,9 @@ interface CourseData {
 }
 
 async function createCourseWithModulesSectionsAndItems(
+  numberOfModules = 3,
+  numberOfSections = 3,
+  numberOfItems = 3,
   app: typeof Express,
 ): Promise<CourseData> {
   const allData: CourseData = {
@@ -68,8 +71,8 @@ async function createCourseWithModulesSectionsAndItems(
     .expect(201);
   allData.courseVersionId = versionRes.body.version._id;
 
-  // Create 3 Modules, each with 3 Sections, and each Section with 3 Items
-  for (let i = 0; i < 3; i++) {
+  // Create Modules, each with Sections, and each Section with Items
+  for (let i = 0; i < numberOfModules; i++) {
     const moduleData: ModuleData = {
       name: faker.commerce.productName(),
       description: faker.commerce.productDescription(),
@@ -87,8 +90,8 @@ async function createCourseWithModulesSectionsAndItems(
       .expect(201);
     moduleData.moduleId = moduleRes.body.version.modules[i].moduleId;
 
-    // Create 3 Sections for the Module
-    for (let j = 0; j < 3; j++) {
+    // Create Sections for the Module
+    for (let j = 0; j < numberOfSections; j++) {
       const sectionData: SectionData = {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
@@ -109,8 +112,8 @@ async function createCourseWithModulesSectionsAndItems(
       sectionData.sectionId =
         sectionRes.body.version.modules[i].sections[j].sectionId;
 
-      // Create 3 Items for the Section
-      for (let k = 0; k < 3; k++) {
+      // Create Items for the Section
+      for (let k = 0; k < numberOfItems; k++) {
         const itemData: ItemData = {
           name: faker.commerce.productName(),
           description: faker.commerce.productDescription(),
