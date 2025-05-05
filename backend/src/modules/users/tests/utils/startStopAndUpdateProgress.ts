@@ -1,7 +1,7 @@
 // utils/testProgressTracking.ts
 import request from 'supertest';
 import Express from 'express';
-import {ProgressService} from '../services/ProgressService';
+import {ProgressService} from '../../services/ProgressService';
 
 export async function startStopAndUpdateProgress({
   userId,

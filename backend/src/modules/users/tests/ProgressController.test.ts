@@ -16,7 +16,6 @@ import {
   UpdateProgressBody,
   usersModuleOptions,
 } from '..';
-import {createFullEnrollmentFixture, Fixture} from './common';
 import {faker, ne} from '@faker-js/faker/.';
 import {isMongoId} from 'class-validator';
 import {ProgressService} from '../services/ProgressService';
@@ -28,17 +27,16 @@ import {IUser, IWatchTime} from 'shared/interfaces/Models';
 import {
   CourseData,
   createCourseWithModulesSectionsAndItems,
-} from './createCourse';
-import {createUser} from './createUser';
-import {createEnrollment} from './createEnrollment';
-import {startStopAndUpdateProgress} from './startStopAndUpdateProgress';
-import {verifyProgressInDatabase} from './verifyProgressInDatabase';
+} from './utils/createCourse';
+import {createUser} from './utils/createUser';
+import {createEnrollment} from './utils/createEnrollment';
+import {startStopAndUpdateProgress} from './utils/startStopAndUpdateProgress';
+import {verifyProgressInDatabase} from './utils/verifyProgressInDatabase';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
   let mongoServer: MongoMemoryServer;
-  let f: Fixture;
   let user: IUser;
   let courseData: CourseData;
 
